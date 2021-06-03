@@ -20,6 +20,6 @@ A database application that's super small and easy to develop. It really is smal
 * But hey, it works for me so far
 
 # ToDo
-* codesiging
+* codesigning
 * Add the ability to run SQL and SQL documents
 * Many more than I could list
