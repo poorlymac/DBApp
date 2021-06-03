@@ -96,6 +96,9 @@
             login:    document.getElementById('login').value,
             password: document.getElementById('password').value
         };
+        server = document.getElementById('server').value;
+        login = document.getElementById('login').value;
+        password = document.getElementById('password').value;
         wvlogin(
             db
         ).then(
@@ -105,7 +108,7 @@
                 if (res.result) {
                     document.getElementById('loginview').style.visibility = "hidden";
                     document.getElementById('dbview').style.visibility = "visible";
-                    document.getElementById('header').innerHTML = "Connected to mysql://" + login + "@" + server + "/ Schemas: " + res.data.length + ", Tables: " + res.tables_tot + ", MB: " + res.mb_tot;
+                    document.getElementById('header').innerHTML = "Connected to mysql://" + login + "@" + server + "/ Version: " + res.version + ", Schemas: " + res.data.length + ", Tables: " + res.tables_tot + ", MB: " + res.mb_tot + " <button onclick=\"doLogout()\">Logout</button>";
                     document.getElementById('footer').innerHTML = res.message;
                     schemaData = res.data;
                     var schemas = document.getElementById('schemas');
@@ -141,6 +144,17 @@
                     }
                 }
                 console.log('login res', res);
+            }
+        );
+    }
+
+    function doLogout() {
+        document.getElementById('dbview').style.visibility = "hidden";
+        document.getElementById('loginview').style.visibility = "visible";
+        document.getElementById('message').innerHTML = "";
+        wvlogout().then(
+            function(res) {
+                document.getElementById('message').innerHTML = res.message;
             }
         );
     }

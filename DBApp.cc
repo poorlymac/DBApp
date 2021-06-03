@@ -94,6 +94,7 @@ std::string cnf;
 MYSQL_RES *result;
 MYSQL_ROW row;
 MYSQL *connection, mysql;
+unsigned int conn_timeout = 5;
 
 void signalHandler(int signum) {
     if (connection != NULL) {
@@ -193,6 +194,7 @@ int main() {
     #endif
 
     mysql_init(&mysql);
+    mysql_options(&mysql, MYSQL_OPT_CONNECT_TIMEOUT, &conn_timeout);
     webview::webview w(true, nullptr);
     w.set_title("DBApp");
     w.set_size(1280, 1024, WEBVIEW_HINT_NONE);
@@ -218,7 +220,7 @@ int main() {
             return "{\"message\":\"Error logging into " + server + " as " + login + ": " + mysql_error(&mysql) + "\", \"result\":false}";
         } else {
             // Get the list of databases
-            int state = mysql_query(connection, "SELECT CATALOG_NAME, SCHEMA_NAME, DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME, COALESCE(ROUND(SUM(data_length + index_length) / 1024 / 1024, 2), 0) AS MB, COUNT(*) TABLES FROM information_schema.schemata s LEFT OUTER JOIN information_schema.tables t ON t.table_schema = s.schema_name GROUP BY CATALOG_NAME, SCHEMA_NAME, DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME ORDER BY CATALOG_NAME, SCHEMA_NAME");
+            int state = mysql_query(connection, "SELECT version() VERSION, CATALOG_NAME, SCHEMA_NAME, DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME, COALESCE(ROUND(SUM(data_length + index_length) / 1024 / 1024, 2), 0) AS MB, COUNT(*) TABLES FROM information_schema.schemata s LEFT OUTER JOIN information_schema.tables t ON t.table_schema = s.schema_name GROUP BY CATALOG_NAME, SCHEMA_NAME, DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME ORDER BY 1, 2, 3");
             if (state !=0) {
                 return "{\"message\":\"Error getting schema information: " + std::string(mysql_error(connection)) + "\", \"result\":false}";
             }
@@ -227,15 +229,16 @@ int main() {
             double mb_max = 0.0;
             double mb_tot = 0.0;
             int tables_tot = 0;
+            string version = "";
             if (mysql_num_rows(result) > 0) {
                 while ( ( row = mysql_fetch_row(result)) != NULL ) {
-                    string catalog   = row[0];
-                    string schema    = row[1];
-                    string charset   = row[2];
-                    string collation = row[3];
-                    double mb        = atof(row[4]);
-                    cout << schema + " " << mb <<endl;
-                    int tables       = atoi(row[5]);
+                    version          = row[0];
+                    string catalog   = row[1];
+                    string schema    = row[2];
+                    string charset   = row[3];
+                    string collation = row[4];
+                    double mb        = atof(row[5]);
+                    int tables       = atoi(row[6]);
                     if(mb > mb_max) {
                         mb_max = mb;
                     }
@@ -247,11 +250,22 @@ int main() {
             string data = datastream.str().substr(0, datastream.str().size() - 1); // truncate the last comma
             mysql_free_result(result);
             cout << mb_max << endl;
-            return "{\"message\":\"Logged in to " + server + " as " + login + "\", \"result\":true,\"data\":[" + data + "], \"tables_tot\":\"" + to_string(tables_tot) + "\", \"mb_tot\":\"" + to_string(mb_tot) + "\", \"mb_max\":\"" + to_string(mb_max) + "\"}";
+            return "{\"message\":\"Logged in to " + server + " as " + login + "\", \"result\":true,\"version\":\"" + version + "\",\"data\":[" + data + "], \"tables_tot\":\"" + to_string(tables_tot) + "\", \"mb_tot\":\"" + to_string(mb_tot) + "\", \"mb_max\":\"" + to_string(mb_max) + "\"}";
         }
     });
 
-    // login function
+    // logout function
+    w.bind("wvlogout", [](std::string s) -> std::string {
+        s = "No Connection closed";
+        if (connection != NULL) {
+            s = "Closing Database Connection";
+            mysql_close(connection);
+            connection = NULL;
+        }
+        return "{\"message\":\"" + s + "\"}";
+    });
+
+    // tables function
     w.bind("wvtables", [](std::string s) -> std::string {
         auto catalog = webview::json_parse(s, "", 0);
         auto schema = webview::json_parse(s, "", 1);

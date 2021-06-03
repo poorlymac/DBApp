@@ -42,7 +42,7 @@
 	<key>CFBundleIconFile</key>
 	<string>DBApp.icns</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>10.8.0</string>
+	<string>10.15.0</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>NSHumanReadableCopyright</key>

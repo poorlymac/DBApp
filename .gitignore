@@ -36,3 +36,6 @@ DBApp.app/Contents/Resources/MainMenu.nib
 sortable.css
 sortable.js
 webview.h
+*.zip
+.*.cnf
+.vscode/settings.json

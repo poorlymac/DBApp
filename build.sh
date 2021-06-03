@@ -25,7 +25,7 @@ if [ "$(uname)" == "Darwin" ]; then
         ls -lah DBApp.app/Contents/MacOS/DBApp
         ibtool --compile DBApp.app/Contents/Resources/MainMenu.nib DBApp.app/Contents/Resources/MainMenu.xib
         if [ $? -eq 0 ]
-        then1
+        then
             #DBApp.app/Contents/MacOS/DBApp # good for testing
             open DBApp.app
         fi

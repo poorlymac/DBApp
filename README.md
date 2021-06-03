@@ -1,6 +1,9 @@
 # DBApp
 A database application that's super small and easy to develop. It really is small. Currently only shows database information
 
+# Screenshot
+![DBApp Screenshot](DBApp.png)
+
 # Developer Notes
 * Needs the brew installed mysql client library
 * Statically compiles in mysql and associated libs for easy distribution to the great unwashed
