@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>TextSize</key>
+	<real>13</real>
+	<key>AcceptsFiles</key>
+	<false/>
+	<key>RemainRunning</key>
+	<true/>
+	<key>AcceptsText</key>
+	<false/>
+	<key>InterfaceType</key>
+	<string>Text Window</string>
+	<key>PromptForFileOnLaunch</key>
+	<false/>
+	<key>Authentication</key>
+	<false/>
+	<key>TextFont</key>
+	<string>Monaco</string>
+	<key>TextForeground</key>
+	<string>#000000</string>
+	<key>Suffixes</key>
+	<array/>
+	<key>Creator</key>
+	<string>Platypus-5.3</string>
+	<key>InterpreterPath</key>
+	<string>/bin/sh</string>
+	<key>ScriptArgs</key>
+	<array/>
+	<key>UniformTypes</key>
+	<array>
+		<string>public.item</string>
+		<string>public.folder</string>
+	</array>
+	<key>TextBackground</key>
+	<string>#ffffff</string>
+	<key>Droppable</key>
+	<true/>
+	<key>InterpreterArgs</key>
+	<array/>
+	<key>URISchemes</key>
+	<array/>
+</dict>
+</plist>

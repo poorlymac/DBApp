@@ -29,4 +29,10 @@
 # Executables
 *.exe
 *.out
-*.app
+
+DBApp.app/Contents/MacOS/DBApp
+DBAppHTML.h
+DBApp.app/Contents/Resources/MainMenu.nib
+sortable.css
+sortable.js
+webview.h
