@@ -4,16 +4,8 @@ curl -O https://raw.githubusercontent.com/webview/webview/master/webview.h
 curl -O https://raw.githubusercontent.com/tofsjonas/sortable/main/sortable.js
 curl -O https://raw.githubusercontent.com/tofsjonas/sortable/main/sortable.css
 
-# Convert HTML's to header files
-echo "<style>" > DBAppHTML.html
-cat sortable.css >> DBAppHTML.html
-echo "</style>" >> DBAppHTML.html
-echo "<script language=\"JavaScript\">" >> DBAppHTML.html
-cat sortable.js >> DBAppHTML.html
-echo "</script>" >> DBAppHTML.html
-cat DBApp.html >> DBAppHTML.html
-xxd -i DBAppHTML.html > DBAppHTML.h
-rm DBAppHTML.html
+# Convert main HTML into a header file
+xxd -i DBApp.html DBApp.h
 
 # Compile
 if [ "$(uname)" == "Darwin" ]; then
@@ -24,9 +16,13 @@ if [ "$(uname)" == "Darwin" ]; then
     then
         ls -lah DBApp.app/Contents/MacOS/DBApp
         ibtool --compile DBApp.app/Contents/Resources/MainMenu.nib DBApp.app/Contents/Resources/MainMenu.xib
+        cp sortable.js   DBApp.app/Contents/Resources/
+        cp sortable.css  DBApp.app/Contents/Resources/
+        cp DBApp.js      DBApp.app/Contents/Resources/
+        cp DBApp.css     DBApp.app/Contents/Resources/
         if [ $? -eq 0 ]
         then
-            #DBApp.app/Contents/MacOS/DBApp # good for testing
+            # DBApp.app/Contents/MacOS/DBApp # good for testing
             open DBApp.app
         fi
     fi

@@ -39,3 +39,6 @@ webview.h
 *.zip
 .*.cnf
 .vscode/settings.json
+DBApp.app/Contents/Resources/DBApp.js
+DBApp.app/Contents/Resources/DBApp.css
+DBApp.h

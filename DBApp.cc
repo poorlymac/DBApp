@@ -5,7 +5,7 @@
 #include <sstream>
 #include </usr/local/Cellar/mysql-client/8.0.25/include/mysql/mysql.h>
 #include "webview.h"
-#include "DBAppHTML.h"
+#include "DBApp.h"
 
 using namespace std;
 
@@ -96,6 +96,24 @@ MYSQL_ROW row;
 MYSQL *connection, mysql;
 unsigned int conn_timeout = 5;
 
+string rpath = ".";
+
+std::string loadfile(std::string filepath) {
+    stringstream buffer;
+    ifstream fs (filepath.c_str());
+    if (fs.is_open()) {
+        string line;
+        stringstream buffer;
+        while ( getline (fs, line) ) {
+            buffer << line;
+        }
+        fs.close();
+        return buffer.str();
+    } else {
+        return "";
+    }
+}
+
 void signalHandler(int signum) {
     if (connection != NULL) {
         std::cout << "Closing Database Connection" << std::endl;
@@ -116,6 +134,12 @@ int main() {
     atexit (functionExit);
     cnf = getEnvVar("HOME") +  "/.DBApp.cnf";
     #ifdef __APPLE__
+
+        // get the OSX resource path
+        id bundle = ((id(*)(id, SEL))objc_msgSend)((id)"NSBundle"_cls, "mainBundle"_sel);
+        id brpath = ((id(*)(id, SEL))objc_msgSend)(bundle, "resourcePath"_sel);
+        rpath = ((const char *(*)(id, SEL))objc_msgSend)(brpath, "UTF8String"_sel);
+
         // Thanks goes to https://github.com/lukevers/webview/blob/edit-menu/webview.h fork for all of this section
 
         /*** Create menubar ***/
@@ -302,20 +326,22 @@ int main() {
         return "{\"message\":\"Retrieved table information for catalog " + catalog + " schema " + schema + "\", \"result\":true,\"data\":[" + data + "], \"data_length_tot\":\"" + to_string(data_length_tot) + "\", \"index_length_tot\":\"" + to_string(index_length_tot) + "\", \"table_rows_tot\":\"" + to_string(table_rows_tot) + "\"}";
     });
 
-    std::string s(DBAppHTML_html, DBAppHTML_html + DBAppHTML_html_len);
-    w.navigate("data:text/html," + urlencode(s));
-    ifstream myconf (cnf.c_str());
-    if (myconf.is_open()) {
-        string line;
-        stringstream buffer;
-        while ( getline (myconf, line) ) {
-            buffer << line;
-        }
-        myconf.close();
-        line = buffer.str();
-        auto server   = webview::json_parse(line, "server", 0);
-        auto login    = webview::json_parse(line, "login", 0);
-        auto password = encryptDecrypt(webview::url_decode(webview::json_parse(line, "password", 0)));
+    // Construct and load main HTML
+    std::string s(DBApp_html, DBApp_html + DBApp_html_len);
+    std::string page = "data:text/html,";
+    page.append(urlencode(s));
+    // Add in any styles to the main page
+    page.append(urlencode("<style>"));
+    page.append(urlencode(loadfile(rpath + "/DBApp.css")));
+    page.append(urlencode(loadfile(rpath + "/sortable.css")));
+    page.append(urlencode("</style>"));
+    w.navigate(page.c_str());
+
+    string cnfstr = loadfile(cnf);
+    if (cnfstr != "") {
+        auto server   = webview::json_parse(cnfstr, "server", 0);
+        auto login    = webview::json_parse(cnfstr, "login", 0);
+        auto password = encryptDecrypt(webview::url_decode(webview::json_parse(cnfstr, "password", 0)));
         w.init("var server = " + webview::json_escape(server) + ";");
         w.init("var login = " + webview::json_escape(login) + ";");
         w.init("var password = " + webview::json_escape(password) + ";");
@@ -324,8 +350,12 @@ int main() {
         w.init("var login = '';");
         w.init("var password = '';");
     }
+    
+    // Load other JS support files
+    w.init(loadfile(rpath + "/DBApp.js"));
+    w.init(loadfile(rpath + "/sortable.js"));
+
     w.run();
-    std::cout << "Closing Database Connection" << std::endl;
     mysql_close(connection);
     return 0;
 }
