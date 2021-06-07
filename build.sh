@@ -22,7 +22,7 @@ if [ "$(uname)" == "Darwin" ]; then
         cp DBApp.css     DBApp.app/Contents/Resources/
         if [ $? -eq 0 ]
         then
-            # DBApp.app/Contents/MacOS/DBApp # good for testing
+            # DBApp.app/Contents/MacOS/DBApp # good for testing to look at outputs
             open DBApp.app
         fi
     fi

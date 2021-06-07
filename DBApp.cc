@@ -244,7 +244,7 @@ int main() {
             return "{\"message\":\"Error logging into " + server + " as " + login + ": " + mysql_error(&mysql) + "\", \"result\":false}";
         } else {
             // Get the list of databases
-            int state = mysql_query(connection, "SELECT version() VERSION, CATALOG_NAME, SCHEMA_NAME, DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME, COALESCE(ROUND(SUM(data_length + index_length) / 1024 / 1024, 2), 0) AS MB, COUNT(*) TABLES FROM information_schema.schemata s LEFT OUTER JOIN information_schema.tables t ON t.table_schema = s.schema_name GROUP BY CATALOG_NAME, SCHEMA_NAME, DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME ORDER BY 1, 2, 3");
+            int state = mysql_query(connection, "SELECT version() VERSION, CATALOG_NAME, SCHEMA_NAME, DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME, COALESCE(ROUND(SUM(data_length + index_length) / 1024 / 1024, 2), 0) AS MB, SUM(CASE WHEN table_type = 'BASE TABLE' THEN 1 ELSE 0 END) TABLES, SUM(CASE WHEN table_type = 'VIEW' THEN 1 ELSE 0 END) VIEWS FROM information_schema.schemata s LEFT OUTER JOIN information_schema.tables t ON t.table_schema = s.schema_name GROUP BY CATALOG_NAME, SCHEMA_NAME, DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME ORDER BY 1, 2, 3");
             if (state !=0) {
                 return "{\"message\":\"Error getting schema information: " + std::string(mysql_error(connection)) + "\", \"result\":false}";
             }
@@ -253,6 +253,7 @@ int main() {
             double mb_max = 0.0;
             double mb_tot = 0.0;
             int tables_tot = 0;
+            int views_tot = 0;
             string version = "";
             if (mysql_num_rows(result) > 0) {
                 while ( ( row = mysql_fetch_row(result)) != NULL ) {
@@ -263,18 +264,19 @@ int main() {
                     string collation = row[4];
                     double mb        = atof(row[5]);
                     int tables       = atoi(row[6]);
+                    int views        = atoi(row[7]);
                     if(mb > mb_max) {
                         mb_max = mb;
                     }
                     mb_tot += mb;
                     tables_tot += tables;
-                    datastream << "{\"catalog\":\"" + catalog + "\",\"schema\":\"" + schema + "\",\"charset\":\"" + charset + "\",\"collation\":\"" + collation + "\",\"mb\":\"" << mb << "\",\"tables\":\"" << tables << "\"},";
+                    views_tot += views;
+                    datastream << "{\"catalog\":\"" + catalog + "\",\"schema\":\"" + schema + "\",\"charset\":\"" + charset + "\",\"collation\":\"" + collation + "\",\"mb\":\"" << mb << "\",\"tables\":\"" << tables << "\",\"views\":\"" << views << "\"},";
                 }
             }
             string data = datastream.str().substr(0, datastream.str().size() - 1); // truncate the last comma
             mysql_free_result(result);
-            cout << mb_max << endl;
-            return "{\"message\":\"Logged in to " + server + " as " + login + "\", \"result\":true,\"version\":\"" + version + "\",\"data\":[" + data + "], \"tables_tot\":\"" + to_string(tables_tot) + "\", \"mb_tot\":\"" + to_string(mb_tot) + "\", \"mb_max\":\"" + to_string(mb_max) + "\"}";
+            return "{\"message\":\"Logged in to " + server + " as " + login + "\", \"result\":true,\"version\":\"" + version + "\",\"data\":[" + data + "], \"tables_tot\":\"" + to_string(tables_tot) + "\", \"views_tot\":\"" + to_string(views_tot) + "\", \"mb_tot\":\"" + to_string(mb_tot) + "\", \"mb_max\":\"" + to_string(mb_max) + "\"}";
         }
     });
 
@@ -296,24 +298,24 @@ int main() {
 
         // Get the list of tables
         // TODO protect from injection
-        string sql = "SELECT table_name, table_type, engine, table_rows, data_length, index_length, table_comment FROM information_schema.tables t WHERE table_schema = '" + schema + "' AND table_catalog = '" + catalog + "' ORDER BY table_type, table_name";
+        string sql = "SELECT table_name, table_type, engine, table_rows, COALESCE(ROUND(data_length / 1024 / 1024, 2), 0), COALESCE(ROUND(index_length / 1024 / 1024, 2), 0), table_comment FROM information_schema.tables t WHERE table_schema = '" + schema + "' AND table_catalog = '" + catalog + "' ORDER BY table_type, table_name";
         int state = mysql_query(connection, sql.c_str());
         if (state !=0) {
             return "{\"message\":\"Error getting table information: " + std::string(mysql_error(connection)) + "\", \"result\":false}";
         }
         result = mysql_store_result(connection);
         stringstream datastream;
-        int data_length_tot = 0;
-        int index_length_tot = 0;
-        int table_rows_tot = 0;
+        unsigned long long data_length_tot = 0;
+        unsigned long long index_length_tot = 0;
+        unsigned long long table_rows_tot = 0;
         if (mysql_num_rows(result) > 0) {
             while ( ( row = mysql_fetch_row(result)) != NULL ) {
-                string table_name    = row[0]==NULL?"":row[0];
-                string table_type    = row[1]==NULL?"":row[1];
-                string engine        = row[2]==NULL?"":row[2];
-                int  table_rows    = atoi(row[3]==NULL?"":row[3]);
-                int  data_length   = atoi(row[4]==NULL?"":row[4]);
-                int  index_length  = atoi(row[5]==NULL?"":row[5]);
+                string table_name = row[0]==NULL?"":row[0];
+                string table_type = row[1]==NULL?"":row[1];
+                string engine     = row[2]==NULL?"":row[2];
+                unsigned long long table_rows   = atoll(row[3]==NULL?"":row[3]);
+                unsigned long long data_length  = atoll(row[4]==NULL?"":row[4]);
+                unsigned long long index_length = atoll(row[5]==NULL?"":row[5]);
                 string table_comment = row[6]==NULL?"":row[6];
                 data_length_tot += data_length;
                 index_length_tot += index_length;

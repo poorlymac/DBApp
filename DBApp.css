@@ -44,12 +44,12 @@
 }
 @media (min-width: 700px) {
     .wrapper {
-        grid-template-columns: 1fr 4fr 1fr;
+        grid-template-columns: 2fr 4fr;
         grid-template-areas:
-            "header header  header"
-            "nav    content content"
-            "nav    content content"
-            "footer footer  footer"
+            "header header"
+            "nav    content"
+            "nav    content"
+            "footer footer "
     }
     nav ul {
         flex-direction: column;
