@@ -1,5 +1,5 @@
 # DBApp
-A database application that's super small and easy to develop. It really is small. Currently only shows database information
+A database application that's super small and easy to develop. It really is small, as a Mac app it's 11MB and 500kb of that is the app and the rest is the MySQL support. Currently only supports MySQL (and therefore possibly MariaDB) and only shows database information at this stage.
 
 # Screenshot
 ![DBApp Screenshot](DBApp.png)
@@ -16,13 +16,12 @@ A database application that's super small and easy to develop. It really is smal
 
 # Issues
 * It's not even beta, it's alpha
-* Its super unpretty
-* Need to make the c++ strings raw I think, the + sign blows things up
-* There are lots of little bugs to find and fix, probably memory leaks etc.
-* dodgy build.sh, untested on non Mac
-* But hey, it works for me so far
+* It's super unpretty
+* There are probably lots of little bugs &amp; memory leaks to find and fix
+* dodgy build.sh, untested on non-Mac
 
 # ToDo
-* codesigning
+* codesigning &amp; a release
+* Move the password storage to keychain on Mac
 * Add the ability to run SQL and SQL documents
-* Many more than I could list
+* etcetera ...
