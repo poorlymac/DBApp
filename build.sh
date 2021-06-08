@@ -4,6 +4,8 @@ curl -O https://raw.githubusercontent.com/webview/webview/master/webview.h
 curl -O https://raw.githubusercontent.com/tofsjonas/sortable/main/sortable.js
 curl -O https://raw.githubusercontent.com/tofsjonas/sortable/main/sortable.css
 
+# Syntax highlightiong supplied by prism
+
 # Convert main HTML into a header file
 xxd -i DBApp.html DBApp.h
 
@@ -22,6 +24,8 @@ if [ "$(uname)" == "Darwin" ]; then
         cp sortable.css  DBApp.app/Contents/Resources/
         cp DBApp.js      DBApp.app/Contents/Resources/
         cp DBApp.css     DBApp.app/Contents/Resources/
+        cp prism.js      DBApp.app/Contents/Resources/
+        cp prism.css     DBApp.app/Contents/Resources/
         if [ $? -eq 0 ]
         then
             # DBApp.app/Contents/MacOS/DBApp # good for testing to look at outputs

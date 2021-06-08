@@ -42,3 +42,5 @@ webview.h
 DBApp.app/Contents/Resources/DBApp.js
 DBApp.app/Contents/Resources/DBApp.css
 DBApp.h
+DBApp.app/Contents/Resources/prism.js
+DBApp.app/Contents/Resources/prism.css

@@ -3,11 +3,15 @@
 #include <algorithm>
 #include <string>
 #include <sstream>
+#include <iomanip>
+
 #include </usr/local/Cellar/mysql-client/8.0.25/include/mysql/mysql.h>
 #include "webview.h"
 #include "DBApp.h"
 
 using namespace std;
+
+webview::webview w(true, nullptr);
 
 string encryptDecrypt(string toEncrypt) {
     string key = "Wynona'sGotHerselfABigBrownBeaverAndSheShowsItOffToAllHerFriends";
@@ -90,9 +94,210 @@ std::string getEnvVar(std::string const& key) {
     return val == NULL ? std::string() : std::string(val);
 }
 
+std::string escape_json(const std::string &s) {
+    std::ostringstream o;
+    for (auto c = s.cbegin(); c != s.cend(); c++) {
+        if (*c == '"' || *c == '\\' || ('\x00' <= *c && *c <= '\x1f')) {
+            o << "\\u"
+              << std::hex << std::setw(4) << std::setfill('0') << (int)*c;
+        } else {
+            o << *c;
+        }
+    }
+    return o.str();
+}
+
+std::string escape_json1(const std::string &s) {
+    std::ostringstream o;
+    for (auto c = s.cbegin(); c != s.cend(); c++) {
+        switch (*c) {
+        case '\x00': o << "\\u0000"; break;
+        case '\x01': o << "\\u0001"; break;
+        // ...
+        case '\x0a': o << "\\n"; break;
+        // ...
+        case '\x1f': o << "\\u001f"; break;
+        case '\x22': o << "\\\""; break;
+        case '\x5c': o << "\\\\"; break;
+        default: o << *c;
+        }
+    }
+    return o.str();
+}
+
+std::string escape_json2(const std::string &s) {
+    std::ostringstream o;
+    for (auto c = s.cbegin(); c != s.cend(); c++) {
+        switch (*c) {
+        case '"': o << "\\\""; break;
+        case '\\': o << "\\\\"; break;
+        case '\b': o << "\\b"; break;
+        case '\f': o << "\\f"; break;
+        case '\n': o << "\\n"; break;
+        case '\r': o << "\\r"; break;
+        case '\t': o << "\\t"; break;
+        default:
+            if ('\x00' <= *c && *c <= '\x1f') {
+                o << "\\u"
+                  << std::hex << std::setw(4) << std::setfill('0') << (int)*c;
+            } else {
+                o << *c;
+            }
+        }
+    }
+    return o.str();
+}
+
+std::string escape_json3(const std::string &s) {
+    std::string output;
+    output.reserve(s.length());
+    for (std::string::size_type i = 0; i < s.length(); ++i) {
+        switch (s[i]) {
+            case '"':
+                output += "\\\"";
+                break;
+            case '/':
+                output += "\\/";
+                break;
+            case '\b':
+                output += "\\b";
+                break;
+            case '\f':
+                output += "\\f";
+                break;
+            case '\n':
+                output += "\\n";
+                break;
+            case '\r':
+                output += "\\r";
+                break;
+            case '\t':
+                output += "\\t";
+                break;
+            case '\\':
+                output += "\\\\";
+                break;
+            default:
+                output += s[i];
+                break;
+        }
+    }
+    return output;
+}
+
+string mysql_type(int type) {
+    string t = "unknown";
+    switch (type) {
+        case 1:
+            t = "decimal";
+            break;
+        case 2:
+            t = "tiny";
+            break;
+        case 3:
+            t = "short";
+            break;
+        case 4:
+            t = "long";
+            break;
+        case 5:
+            t = "float";
+            break;
+        case 6:
+            t = "double";
+            break;
+        case 7:
+            t = "null";
+            break;
+        case 8:
+            t = "timestamp";
+            break;
+        case 9:
+            t = "longlong";
+            break;
+        case 10:
+            t = "int24";
+            break;
+        case 11:
+            t = "date";
+            break;
+        case 12:
+            t = "time";
+            break;
+        case 13:
+            t = "datetime";
+            break;
+        case 14:
+            t = "year";
+            break;
+        case 15:
+            t = "newdate";
+            break;
+        case 16:
+            t = "varchar";
+            break;
+        case 17:
+            t = "bit";
+            break;
+        case 18:
+            t = "timestamp2";
+            break;
+        case 19:
+            t = "datetime2";
+            break;
+        case 20:
+            t = "time2";
+            break;
+        case 21:
+            t = "typed array";
+            break;
+        case 243:
+            t = "invalid";
+            break;
+        case 244:
+            t = "bool";
+            break;
+        case 245:
+            t = "json";
+            break;
+        case 246:
+            t = "new decimal";
+            break;
+        case 247:
+            t = "enum";
+            break;
+        case 248:
+            t = "set";
+            break;
+        case 249:
+            t = "tiny blob";
+            break;
+        case 250:
+            t = "medium blob";
+            break;
+        case 251:
+            t = "long blob";
+            break;
+        case 252:
+            t = "blob";
+            break;
+        case 253:
+            t = "var string";
+            break;
+        case 254:
+            t = "string";
+            break;
+        case 255:
+            t = "geometry";
+            break;
+    }
+    return t;
+}
+
 std::string cnf;
 MYSQL_RES *result;
 MYSQL_ROW row;
+MYSQL_FIELD *field;
 MYSQL *connection, mysql;
 unsigned int conn_timeout = 5;
 
@@ -116,13 +321,142 @@ std::string loadfile(std::string filepath) {
 
 void signalHandler(int signum) {
     if (connection != NULL) {
-        std::cout << "Closing Database Connection" << std::endl;
         mysql_close(connection);
         exit(signum);
     }
 }
 void functionExit(void) {
     signalHandler(0);
+}
+
+string getDatabaseInformation(string server, string login) {
+    // Get the list of databases
+    int state = mysql_query(connection, "SELECT version() VERSION, CATALOG_NAME, SCHEMA_NAME, DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME, COALESCE(ROUND(SUM(data_length + index_length) / 1024 / 1024, 2), 0) AS MB, SUM(CASE WHEN table_type = 'BASE TABLE' THEN 1 ELSE 0 END) TABLES, SUM(CASE WHEN table_type = 'VIEW' THEN 1 ELSE 0 END) VIEWS FROM information_schema.schemata s LEFT OUTER JOIN information_schema.tables t ON t.table_schema = s.schema_name GROUP BY CATALOG_NAME, SCHEMA_NAME, DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME ORDER BY 1, 2, 3");
+    if (state !=0) {
+        return "{\"message\":\"Error getting schema information: " + std::string(mysql_error(connection)) + "\", \"result\":false}";
+    }
+    result = mysql_store_result(connection);
+    stringstream datastream;
+    double mb_max = 0.0;
+    double mb_tot = 0.0;
+    int tables_tot = 0;
+    int views_tot = 0;
+    string version = "";
+    string data = "";
+    if (mysql_num_rows(result) > 0) {
+        while ( ( row = mysql_fetch_row(result)) != NULL ) {
+            version          = row[0];
+            string catalog   = row[1];
+            string schema    = row[2];
+            string charset   = row[3];
+            string collation = row[4];
+            double mb        = atof(row[5]);
+            int tables       = atoi(row[6]);
+            int views        = atoi(row[7]);
+            if(mb > mb_max) {
+                mb_max = mb;
+            }
+            mb_tot += mb;
+            tables_tot += tables;
+            views_tot += views;
+            datastream << "{\"catalog\":\"" + catalog + "\",\"schema\":\"" + schema + "\",\"charset\":\"" + charset + "\",\"collation\":\"" + collation + "\",\"mb\":\"" << mb << "\",\"tables\":\"" << tables << "\",\"views\":\"" << views << "\"},";
+        }
+        data = datastream.str().substr(0, datastream.str().size() - 1); // truncate the last comma
+    }
+    mysql_free_result(result);
+    return "{\"message\":\"Logged in to " + server + " as " + login + "\", \"result\":true,\"version\":\"" + version + "\",\"data\":[" + data + "], \"tables_tot\":\"" + to_string(tables_tot) + "\", \"views_tot\":\"" + to_string(views_tot) + "\", \"mb_tot\":\"" + to_string(mb_tot) + "\", \"mb_max\":\"" + to_string(mb_max) + "\"}";
+}
+
+string getDatabaseTableInformation(string catalog, string schema) {
+    // Get the list of tables
+    // TODO protect from injection
+    string sql = "SELECT table_name, table_type, engine, table_rows, COALESCE(ROUND(data_length / 1024 / 1024, 2), 0), COALESCE(ROUND(index_length / 1024 / 1024, 2), 0), table_comment FROM information_schema.tables t WHERE table_schema = '" + schema + "' AND table_catalog = '" + catalog + "' ORDER BY table_type, table_name";
+    int state = mysql_query(connection, sql.c_str());
+    if (state !=0) {
+        return "{\"message\":\"Error getting table information: " + std::string(mysql_error(connection)) + "\", \"result\":false}";
+    }
+    result = mysql_store_result(connection);
+    stringstream datastream;
+    unsigned long long data_length_tot = 0;
+    unsigned long long index_length_tot = 0;
+    unsigned long long table_rows_tot = 0;
+    unsigned long long rowcount = 0;
+    if (mysql_num_rows(result) > 0) {
+        while ( ( row = mysql_fetch_row(result)) != NULL ) {
+            if (rowcount != 0) {
+                datastream << ",";
+            }
+            rowcount++;
+            string table_name = row[0]==NULL?"":row[0];
+            string table_type = row[1]==NULL?"":row[1];
+            string engine     = row[2]==NULL?"":row[2];
+            unsigned long long table_rows   = atoll(row[3]==NULL?"":row[3]);
+            unsigned long long data_length  = atoll(row[4]==NULL?"":row[4]);
+            unsigned long long index_length = atoll(row[5]==NULL?"":row[5]);
+            string table_comment = row[6]==NULL?"":row[6];
+            data_length_tot += data_length;
+            index_length_tot += index_length;
+            table_rows_tot += table_rows;
+            datastream << "{\"table_name\":\"" + escape_json(table_name) + "\",\"table_type\":\"" + escape_json(table_type) + "\",\"engine\":\"" + escape_json(engine) + "\",\"table_rows\":\"" << table_rows << "\",\"data_length\":\"" << data_length << "\",\"index_length\":\"" << index_length << "\",\"table_comment\":\"" + escape_json(table_comment) + "\"}";
+        }
+    }
+    mysql_free_result(result);
+    return "{\"message\":\"Retrieved table information for catalog " + escape_json(catalog) + " schema " + escape_json(schema) + "\", \"result\":true,\"data\":[" + datastream.str() + "], \"data_length_tot\":\"" + to_string(data_length_tot) + "\", \"index_length_tot\":\"" + to_string(index_length_tot) + "\", \"table_rows_tot\":\"" + to_string(table_rows_tot) + "\"}";
+}
+
+string runSQL(string catalog, string schema, string sql) {
+    if (mysql_select_db(connection, schema.c_str())) {
+        return "{\"message\":\"Failed to set database: " + escape_json(mysql_error(connection)) + "\",\"sql\":\"" + escape_json(sql) + "\", \"result\":false}";
+    }
+    if (mysql_real_query(connection, sql.c_str(), strlen(sql.c_str()))) {
+        return "{\"message\":\"Error running query: " + escape_json(mysql_error(connection)) + "\",\"sql\":\"" + escape_json(sql) + "\", \"result\":false}";
+    }
+    result = mysql_use_result(&mysql);
+    stringstream datastream;
+    stringstream columnstream;
+    stringstream columnnamestream;
+    char* p;
+    unsigned long long rowcount = 0;
+    int num_fields = mysql_num_fields(result);
+    while ((row = mysql_fetch_row(result)) != NULL) {
+        if (rowcount != 0) {
+            datastream << ",";
+        } else {
+            for(int i = 0; i < num_fields; i++) {
+                if (i != 0) {
+                    columnstream << ",";
+                    columnnamestream << ",";
+                }
+                field = mysql_fetch_field_direct(result, i);
+                columnstream << "{\"name\":\"" << escape_json(field->name) << "\",\"type\":\"" << mysql_type(field->type) << "\"}";
+                columnnamestream << "\"" << escape_json(field->name) << "\":{\"type\":\"" << mysql_type(field->type) << "\", \"position\":" << i << "}";
+            }
+        }
+        rowcount++;
+        datastream << "[";
+        for(int i = 0; i < num_fields; i++) {
+            field = mysql_fetch_field_direct(result, i);
+            auto value = (row[i]==NULL?"":row[i]);
+            // Display numbers raw
+            long converted = strtol(value, &p, 10);
+            if (*p) {
+                datastream << "\"" << escape_json(value) << "\"";
+            } else {
+                datastream << value;
+            }
+            if(i + 1 != num_fields) {
+                datastream << ",";
+            }
+        }
+        datastream << "]";
+        if (rowcount % 10000 == 0) {
+            w.eval("document.getElementById('result').innerHTML = 'Retrieved " + to_string(rowcount) + " rows ..';");
+        }
+    }
+    w.eval("document.getElementById('result').innerHTML = 'Retrieved " + to_string(rowcount) + " rows, tabulating';");
+    string data = datastream.str();
+    mysql_free_result(result);
+    return "{\"message\":\"Retrieved " + to_string(rowcount) + " rows\", \"catalog\":\"" + escape_json(catalog) + "\", \"schema\":\"" + escape_json(schema) + "\",\"sql\":\"" + escape_json(sql) + "\", \"result\":true,\"columns\":{\"column\":[" + columnstream.str() + "], \"columnname\":{" + columnnamestream.str() + "}},\"data\":[" + data + "],\"rowcount\":\"" + to_string(rowcount) + "\",\"num_fields\":\"" + to_string(num_fields) + "\"}";
 }
 
 #ifdef WIN32
@@ -219,7 +553,6 @@ int main() {
 
     mysql_init(&mysql);
     mysql_options(&mysql, MYSQL_OPT_CONNECT_TIMEOUT, &conn_timeout);
-    webview::webview w(true, nullptr);
     w.set_title("DBApp");
     w.set_size(1280, 1024, WEBVIEW_HINT_NONE);
     w.set_size(180, 120, WEBVIEW_HINT_MIN);
@@ -235,48 +568,15 @@ int main() {
         // Write config to file
         ofstream myconf;
         myconf.open(cnf);
-        myconf << "{\"server\":" +  webview::json_escape(server) + ", \"login\":" + webview::json_escape(login) + ", \"password\":" + webview::json_escape(webview::url_encode(encryptDecrypt(password))) + "}";
+        myconf << "{\"server\":\"" +  escape_json(server) + "\", \"login\":\"" + escape_json(login) + "\", \"password\":\"" + escape_json(webview::url_encode(encryptDecrypt(password))) + "\"}";
         myconf.close();
 
         // TODO MySQL Login
         connection = mysql_real_connect(&mysql, server.c_str(), login.c_str(), password.c_str(), "mysql", 0, 0, 0);
         if (connection == NULL) {
-            return "{\"message\":\"Error logging into " + server + " as " + login + ": " + mysql_error(&mysql) + "\", \"result\":false}";
+            return "{\"message\":\"Error logging into " + escape_json(server) + " as " + escape_json(login) + ": " + escape_json(mysql_error(&mysql)) + "\", \"result\":false}";
         } else {
-            // Get the list of databases
-            int state = mysql_query(connection, "SELECT version() VERSION, CATALOG_NAME, SCHEMA_NAME, DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME, COALESCE(ROUND(SUM(data_length + index_length) / 1024 / 1024, 2), 0) AS MB, SUM(CASE WHEN table_type = 'BASE TABLE' THEN 1 ELSE 0 END) TABLES, SUM(CASE WHEN table_type = 'VIEW' THEN 1 ELSE 0 END) VIEWS FROM information_schema.schemata s LEFT OUTER JOIN information_schema.tables t ON t.table_schema = s.schema_name GROUP BY CATALOG_NAME, SCHEMA_NAME, DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME ORDER BY 1, 2, 3");
-            if (state !=0) {
-                return "{\"message\":\"Error getting schema information: " + std::string(mysql_error(connection)) + "\", \"result\":false}";
-            }
-            result = mysql_store_result(connection);
-            stringstream datastream;
-            double mb_max = 0.0;
-            double mb_tot = 0.0;
-            int tables_tot = 0;
-            int views_tot = 0;
-            string version = "";
-            if (mysql_num_rows(result) > 0) {
-                while ( ( row = mysql_fetch_row(result)) != NULL ) {
-                    version          = row[0];
-                    string catalog   = row[1];
-                    string schema    = row[2];
-                    string charset   = row[3];
-                    string collation = row[4];
-                    double mb        = atof(row[5]);
-                    int tables       = atoi(row[6]);
-                    int views        = atoi(row[7]);
-                    if(mb > mb_max) {
-                        mb_max = mb;
-                    }
-                    mb_tot += mb;
-                    tables_tot += tables;
-                    views_tot += views;
-                    datastream << "{\"catalog\":\"" + catalog + "\",\"schema\":\"" + schema + "\",\"charset\":\"" + charset + "\",\"collation\":\"" + collation + "\",\"mb\":\"" << mb << "\",\"tables\":\"" << tables << "\",\"views\":\"" << views << "\"},";
-                }
-            }
-            string data = datastream.str().substr(0, datastream.str().size() - 1); // truncate the last comma
-            mysql_free_result(result);
-            return "{\"message\":\"Logged in to " + server + " as " + login + "\", \"result\":true,\"version\":\"" + version + "\",\"data\":[" + data + "], \"tables_tot\":\"" + to_string(tables_tot) + "\", \"views_tot\":\"" + to_string(views_tot) + "\", \"mb_tot\":\"" + to_string(mb_tot) + "\", \"mb_max\":\"" + to_string(mb_max) + "\"}";
+            return getDatabaseInformation(server, login);
         }
     });
 
@@ -295,37 +595,15 @@ int main() {
     w.bind("wvtables", [](std::string s) -> std::string {
         auto catalog = webview::json_parse(s, "", 0);
         auto schema = webview::json_parse(s, "", 1);
+        return getDatabaseTableInformation(catalog, schema);
+    });
 
-        // Get the list of tables
-        // TODO protect from injection
-        string sql = "SELECT table_name, table_type, engine, table_rows, COALESCE(ROUND(data_length / 1024 / 1024, 2), 0), COALESCE(ROUND(index_length / 1024 / 1024, 2), 0), table_comment FROM information_schema.tables t WHERE table_schema = '" + schema + "' AND table_catalog = '" + catalog + "' ORDER BY table_type, table_name";
-        int state = mysql_query(connection, sql.c_str());
-        if (state !=0) {
-            return "{\"message\":\"Error getting table information: " + std::string(mysql_error(connection)) + "\", \"result\":false}";
-        }
-        result = mysql_store_result(connection);
-        stringstream datastream;
-        unsigned long long data_length_tot = 0;
-        unsigned long long index_length_tot = 0;
-        unsigned long long table_rows_tot = 0;
-        if (mysql_num_rows(result) > 0) {
-            while ( ( row = mysql_fetch_row(result)) != NULL ) {
-                string table_name = row[0]==NULL?"":row[0];
-                string table_type = row[1]==NULL?"":row[1];
-                string engine     = row[2]==NULL?"":row[2];
-                unsigned long long table_rows   = atoll(row[3]==NULL?"":row[3]);
-                unsigned long long data_length  = atoll(row[4]==NULL?"":row[4]);
-                unsigned long long index_length = atoll(row[5]==NULL?"":row[5]);
-                string table_comment = row[6]==NULL?"":row[6];
-                data_length_tot += data_length;
-                index_length_tot += index_length;
-                table_rows_tot += table_rows;
-                datastream << "{\"table_name\":\"" + table_name + "\",\"table_type\":\"" + table_type + "\",\"engine\":\"" + engine + "\",\"table_rows\":\"" << table_rows << "\",\"data_length\":\"" << data_length << "\",\"index_length\":\"" << index_length << "\",\"table_comment\":\"" + table_comment + "\"},";
-            }
-        }
-        string data = datastream.str().substr(0, datastream.str().size() - 1); // truncate the last comma
-        mysql_free_result(result);
-        return "{\"message\":\"Retrieved table information for catalog " + catalog + " schema " + schema + "\", \"result\":true,\"data\":[" + data + "], \"data_length_tot\":\"" + to_string(data_length_tot) + "\", \"index_length_tot\":\"" + to_string(index_length_tot) + "\", \"table_rows_tot\":\"" + to_string(table_rows_tot) + "\"}";
+    // Run SQL function
+    w.bind("wvsql", [](std::string s) -> std::string {
+        auto catalog = webview::json_parse(s, "", 0);
+        auto schema = webview::json_parse(s, "", 1);
+        auto sql = webview::json_parse(s, "", 2);
+        return runSQL(catalog, schema, sql);
     });
 
     // Construct and load main HTML
@@ -336,6 +614,7 @@ int main() {
     page.append(urlencode("<style>"));
     page.append(urlencode(loadfile(rpath + "/DBApp.css")));
     page.append(urlencode(loadfile(rpath + "/sortable.css")));
+    page.append(urlencode(loadfile(rpath + "/prism.css")));
     page.append(urlencode("</style>"));
     w.navigate(page.c_str());
 
@@ -344,9 +623,9 @@ int main() {
         auto server   = webview::json_parse(cnfstr, "server", 0);
         auto login    = webview::json_parse(cnfstr, "login", 0);
         auto password = encryptDecrypt(webview::url_decode(webview::json_parse(cnfstr, "password", 0)));
-        w.init("var server = " + webview::json_escape(server) + ";");
-        w.init("var login = " + webview::json_escape(login) + ";");
-        w.init("var password = " + webview::json_escape(password) + ";");
+        w.init("var server = \"" + escape_json(server) + "\";");
+        w.init("var login = \"" + escape_json(login) + "\";");
+        w.init("var password = \"" + escape_json(password) + "\";");
     } else {
         w.init("var server = '';");
         w.init("var login = '';");
@@ -356,6 +635,7 @@ int main() {
     // Load other JS support files
     w.init(loadfile(rpath + "/DBApp.js"));
     w.init(loadfile(rpath + "/sortable.js"));
+    w.init(loadfile(rpath + "/prism.js"));
 
     w.run();
     mysql_close(connection);

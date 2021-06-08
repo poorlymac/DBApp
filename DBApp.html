@@ -1,9 +1,9 @@
 <div id="container">
     <div id="loginview" style="visibility: visible;">
         <table>
-            <tr><th align="left">Server</th><td><input type="text" name="server" id="server" value="" size="60" /><td></tr>
-            <tr><th align="left">Login</th><td><input type="text" name="login" id="login" value="" /><td></tr>
-            <tr><th align="left">Password</th><td><input type="password" name="password" id="password" value="" /><td></tr>
+            <tr><th style="text-align:left">Server</th><td><input type="text" name="server" id="server" value="" size="60" /><td></tr>
+            <tr><th style="text-align:left">Login</th><td><input type="text" name="login" id="login" value="" /><td></tr>
+            <tr><th style="text-align:left">Password</th><td><input type="password" name="password" id="password" value="" /><td></tr>
         </table>
         <button name="Login" id="loginButton" onclick="doLogin()">Login</button><div id="message"></div>
     </div>
@@ -14,6 +14,18 @@
             </ul>
         </nav>
         <article class="content">
+            <input type="hidden" id="catalog" value="" />
+            <input type="hidden" id="schema" value="" />
+            <div style="position: relative;width: 100%;height: 200px">
+                <div style="position: relative;width: 100%;height: 200px">
+                    <textarea id="editing" spellcheck="false" oninput="update(this.value);" onscroll="sync_scroll(this);" onkeydown="check_tab(this, event);"></textarea>
+                    <pre id="highlighting" aria-hidden="true">
+                        <code class="language-sql" id="highlighting-content"></code>
+                    </pre>    
+                </div>
+            </div>
+            <button id="runsql" onclick="runSQL()">Run SQL</button><button onclick="document.getElementById('result').innerHTML=''">Clear</button><br>
+            <div id="result"></div><br>
             <pre id="content">Click on a schema to see its information</pre>
         </article>
         <footer class="main-footer" id="footer"></footer>
