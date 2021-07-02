@@ -10,8 +10,9 @@
     <div id="dbview" class="wrapper" style="visibility: hidden;">
         <header class="main-head" id="header"></header>
         <nav class="main-nav">
-            <ul id="schemas">
-            </ul>
+                <button name="Refresh" id="refreshButton" onclick="refreshSchemas()">Refresh</button>
+                <ul id="schemas">
+                </ul>
         </nav>
         <article class="content">
             <input type="hidden" id="catalog" value="" />

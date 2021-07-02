@@ -300,6 +300,8 @@ MYSQL_ROW row;
 MYSQL_FIELD *field;
 MYSQL *connection, mysql;
 unsigned int conn_timeout = 5;
+string server;
+string login;
 
 string rpath = ".";
 
@@ -329,7 +331,7 @@ void functionExit(void) {
     signalHandler(0);
 }
 
-string getDatabaseInformation(string server, string login) {
+string getDatabaseInformation() {
     // Get the list of databases
     int state = mysql_query(connection, "SELECT version() VERSION, CATALOG_NAME, SCHEMA_NAME, DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME, COALESCE(ROUND(SUM(data_length + index_length) / 1024 / 1024, 2), 0) AS MB, SUM(CASE WHEN table_type = 'BASE TABLE' THEN 1 ELSE 0 END) TABLES, SUM(CASE WHEN table_type = 'VIEW' THEN 1 ELSE 0 END) VIEWS FROM information_schema.schemata s LEFT OUTER JOIN information_schema.tables t ON t.table_schema = s.schema_name GROUP BY CATALOG_NAME, SCHEMA_NAME, DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME ORDER BY 1, 2, 3");
     if (state !=0) {
@@ -561,8 +563,8 @@ int main() {
     w.bind("wvlogin", [](std::string s) -> std::string {
         auto db = webview::json_parse(s, "", 0);
         // std::cout << s << std::endl;
-        auto server   = webview::json_parse(db, "server", 0);
-        auto login    = webview::json_parse(db, "login", 1);
+        server   = webview::json_parse(db, "server", 0);
+        login    = webview::json_parse(db, "login", 1);
         auto password = webview::json_parse(db, "password", 2);
 
         // Write config to file
@@ -576,7 +578,7 @@ int main() {
         if (connection == NULL) {
             return "{\"message\":\"Error logging into " + escape_json(server) + " as " + escape_json(login) + ": " + escape_json(mysql_error(&mysql)) + "\", \"result\":false}";
         } else {
-            return getDatabaseInformation(server, login);
+            return getDatabaseInformation();
         }
     });
 
@@ -596,6 +598,11 @@ int main() {
         auto catalog = webview::json_parse(s, "", 0);
         auto schema = webview::json_parse(s, "", 1);
         return getDatabaseTableInformation(catalog, schema);
+    });
+
+    // tables function
+    w.bind("wvschemas", [](std::string s) -> std::string {
+        return getDatabaseInformation();
     });
 
     // Run SQL function
@@ -620,8 +627,8 @@ int main() {
 
     string cnfstr = loadfile(cnf);
     if (cnfstr != "") {
-        auto server   = webview::json_parse(cnfstr, "server", 0);
-        auto login    = webview::json_parse(cnfstr, "login", 0);
+        server   = webview::json_parse(cnfstr, "server", 0);
+        login    = webview::json_parse(cnfstr, "login", 0);
         auto password = encryptDecrypt(webview::url_decode(webview::json_parse(cnfstr, "password", 0)));
         w.init("var server = \"" + escape_json(server) + "\";");
         w.init("var login = \"" + escape_json(login) + "\";");
@@ -636,6 +643,7 @@ int main() {
     w.init(loadfile(rpath + "/DBApp.js"));
     w.init(loadfile(rpath + "/sortable.js"));
     w.init(loadfile(rpath + "/prism.js"));
+    w.init(loadfile(rpath + "/vue.global.js"));
 
     w.run();
     mysql_close(connection);
