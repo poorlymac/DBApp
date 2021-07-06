@@ -1,16 +1,24 @@
+#!/bin/bash
+
 # Get the most recent webview.h
 curl -O https://raw.githubusercontent.com/webview/webview/master/webview.h
 # get the most recent sortable js and css
 curl -O https://raw.githubusercontent.com/tofsjonas/sortable/main/sortable.js
 curl -O https://raw.githubusercontent.com/tofsjonas/sortable/main/sortable.css
 
-# Syntax highlightiong supplied by prism
+# I had to get these once and then remove // style comments as this breaks webview.h
+# curl -O https://raw.githubusercontent.com/kueblc/LDT/master/lib/Keybinder.js
+# curl -O https://raw.githubusercontent.com/kueblc/LDT/master/lib/Parser.js
+# curl -O https://raw.githubusercontent.com/kueblc/LDT/master/lib/SelectHelper.js
+# curl -O https://raw.githubusercontent.com/kueblc/LDT/master/lib/TextareaDecorator.css
+# curl -O https://raw.githubusercontent.com/kueblc/LDT/master/lib/TextareaDecorator.js
 
 # Convert main HTML into a header file
 xxd -i DBApp.html DBApp.h
 
 # Compile
 if [ "$(uname)" == "Darwin" ]; then
+    DEV_ID="" # <-- Put your Apple Developer ID in here if you wish to codesign
     rm -f DBApp.app/Contents/MacOS/DBApp
     # Statically compile in mysql client, ssl and crypto stuff
     c++ DBApp.cc -std=c++11 -framework WebKit -I/usr/local/include -I/usr/local/include/mysql -W  -L/usr/local/lib -lz /usr/local/lib/libzstd.a /usr/local/lib/libmysqlclient.a /usr/local/Cellar/openssl@1.1/1.1.1k/lib/libcrypto.a /usr/local/Cellar/openssl@1.1/1.1.1k/lib/libssl.a -o DBApp.app/Contents/MacOS/DBApp
@@ -18,16 +26,21 @@ if [ "$(uname)" == "Darwin" ]; then
     # c++ DBApp.cc -std=c++11 -framework WebKit -I/usr/local/include -I/usr/local/include/mysql -W  -L/usr/local/lib -lmysqlclient -o DBApp.app/Contents/MacOS/DBApp
     if [ $? -eq 0 ]
     then
+        xattr -cr DBApp.app
         ls -lah DBApp.app/Contents/MacOS/DBApp
         ibtool --compile DBApp.app/Contents/Resources/MainMenu.nib DBApp.app/Contents/Resources/MainMenu.xib
-        cp sortable.js   DBApp.app/Contents/Resources/
-        cp sortable.css  DBApp.app/Contents/Resources/
-        cp DBApp.js      DBApp.app/Contents/Resources/
-        cp DBApp.css     DBApp.app/Contents/Resources/
-        cp prism.js      DBApp.app/Contents/Resources/
-        cp prism.css     DBApp.app/Contents/Resources/
+        cp sortable.js           DBApp.app/Contents/Resources/
+        cp sortable.css          DBApp.app/Contents/Resources/
+        cp DBApp.js              DBApp.app/Contents/Resources/
+        cp DBApp.css             DBApp.app/Contents/Resources/
+        cp Keybinder.js          DBApp.app/Contents/Resources/
+        cp Parser.js             DBApp.app/Contents/Resources/
+        cp SelectHelper.js       DBApp.app/Contents/Resources/
+        cp TextareaDecorator.css DBApp.app/Contents/Resources/
+        cp TextareaDecorator.js  DBApp.app/Contents/Resources/
         if [ $? -eq 0 ]
         then
+            codesign -s "$DEV_ID" DBApp.app
             # DBApp.app/Contents/MacOS/DBApp # good for testing to look at outputs
             open DBApp.app
         fi

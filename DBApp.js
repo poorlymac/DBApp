@@ -122,7 +122,7 @@ function showSchemaInfo(sn) {
     ).then(
         function(tabinfo) {
             document.getElementById('schemainfo').innerHTML = "<button onclick=\"showSchemaInfo(" + sn + ")\" style=\"float: right;\">Refresh</button><b>" + schemaData[sn].schema + "</b>&nbsp;" + parseFloat(schemaData[sn].mb).toLocaleString() + "MB&nbsp;" + parseInt(schemaData[sn].tables).toLocaleString() + "&nbsp;Tables&nbsp;(" + schemaData[sn].catalog + "&nbsp;" + schemaData[sn].charset + "." + schemaData[sn].collation + ")";
-            var txt = "<table class='sortable' style='font-size:75%'><thead><th>Table Name</th><th>~ Rows</th><th>~ Data / Index (MB)</th><th>~ Total (MB)</th><th>Comment</th></thead></tr><tbody>";
+            var txt = "<table class='sortable' style='font-size:75%'><thead><tr><th>Table Name</th><th>~ Rows</th><th>~ Data / Index (MB)</th><th>~ Total (MB)</th><th>Comment</th></thead></tr><tbody>";
             for (var x in tabinfo.data) {
                 var tr = parseFloat(tabinfo.data[x].table_rows);
                 var dl = parseFloat(tabinfo.data[x].data_length);
@@ -140,18 +140,18 @@ function showSchemaInfo(sn) {
     );
 }
 
-var sqlresponse = false;
+this.sqlresponse = false;
 var resultbody = document.createElement("tbody");
 function runSQL() {
     document.getElementById('message').innerHTML = "";
     document.getElementById('results').innerHTML = "";
     document.getElementById('runsql').disabled = true;
-    setTimeout(function(){
-        if(!sqlresponse) {
+    setTimeout(() => {
+        if(!this.sqlresponse) {
             document.getElementById('runsql').disabled = false;
             document.getElementById('message').innerHTML = "<span style='color: red;'>Query Timed out</span>";    
         }
-        sqlresponse = false;
+        this.sqlresponse = false;
     }, 50000);
     wvsql(
         document.getElementById('catalog').value,
@@ -159,47 +159,11 @@ function runSQL() {
         document.getElementById('sql').value
     ).then(
         function(res) {
-            sqlresponse = true;
+            this.sqlresponse = true;
             document.getElementById('runsql').disabled = false;
             document.getElementById('message').innerHTML = res.message;
             if (res.result) {
-                var fragment = document.createDocumentFragment();
-                var table = document.createElement("table");
-                resultbody = document.createElement("tbody");
-                table.id = "resultstable";
-                table.className = "sortable";
-                table.style = "font-size:75%;display: none;";
-                var thead = document.createElement("thead");
-
-                var tr = document.createElement("tr");
-                for (var columnname in res.columns.columnname) {
-                    var th = document.createElement("th");
-                    th.appendChild(document.createTextNode(columnname));
-                    tr.appendChild(th);
-                }
-                thead.appendChild(tr);
-                table.appendChild(thead);
-                table.appendChild(resultbody);
-                fragment.appendChild(table);
-                document.getElementById('results').appendChild(fragment);
-                for (var columns in res.data) {
-                    var tr = document.createElement("tr");
-                    for (var column in res.data[columns]) {
-                        var val = res.data[columns][column];
-                        if (typeof val == 'number') {
-                            var td = document.createElement("td");
-                            td.style = "text-align: right;";
-                            td.appendChild(document.createTextNode(val));
-                            tr.appendChild(td);
-                        } else {
-                            var td = document.createElement("td");
-                            td.appendChild(document.createTextNode(atob(val)));
-                            tr.appendChild(td);
-                        }
-                    }
-                    resultbody.appendChild(tr);
-                }
-                document.getElementById('resultstable').style = "font-size:75%;display: table;";
+                document.getElementById('results').innerHTML = atob(res.htmltable);
             }
         }
     );

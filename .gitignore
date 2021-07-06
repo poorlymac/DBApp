@@ -42,3 +42,4 @@ webview.h
 DBApp.app/Contents/Resources/*.js
 DBApp.app/Contents/Resources/*.css
 DBApp.h
+DBApp.app/Contents/_CodeSignature/CodeResources

@@ -450,16 +450,16 @@ string runSQL(string catalog, string schema, string sql) {
         return "{\"message\":\"Error running query: " + escape_json(mysql_error(connection)) + "\",\"sql\":\"" + escape_json(sql) + "\", \"result\":false}";
     }
     MYSQL_RES *runresult = mysql_use_result(connection);
-    stringstream datastream;
+    stringstream htmltable;
     stringstream columnstream;
     stringstream columnnamestream;
     char* p;
     unsigned long long rowcount = 0;
     int num_fields = mysql_num_fields(runresult);
+    htmltable << "<table class='sortable' style='font-size:75%'>";
     while ((row = mysql_fetch_row(runresult)) != NULL) {
-        if (rowcount != 0) {
-            datastream << ",";
-        } else {
+        if (rowcount == 0) {
+            htmltable << "<thead><tr>";
             for(int i = 0; i < num_fields; i++) {
                 if (i != 0) {
                     columnstream << ",";
@@ -468,41 +468,40 @@ string runSQL(string catalog, string schema, string sql) {
                 field = mysql_fetch_field_direct(runresult, i);
                 columnstream << "{\"name\":\"" << escape_json(field->name) << "\",\"type\":\"" << mysql_type(field->type) << "\"}" << endl;
                 columnnamestream << "\"" << escape_json(field->name) << "\":{\"type\":\"" << mysql_type(field->type) << "\", \"position\":" << i << "}" << endl;
+                htmltable << "<th>" << field->name << "</th>";
             }
+            htmltable << "</tr></thead><tbody>";
         }
         rowcount++;
-        datastream << "[";
+        htmltable << "<tr>";
         for(int i = 0; i < num_fields; i++) {
             field = mysql_fetch_field_direct(runresult, i);
             if (row[i]==NULL) {
-                datastream << "\"\"";
+                htmltable << "<td>null</td>";
             } else {
                 auto value = row[i];
                 if(strlen(value) == 0) {
-                    datastream << "\"\"";
+                    htmltable << "<td></td>";
                 } else {
                     // Display numbers raw
                     long converted = strtol(value, &p, 10);
                     if (*p) {
-                        datastream << "\"" << base64_encode(value) << "\"";
+                        htmltable << "<td>" << value << "</td>";
                     } else {
-                        datastream << value;
+                        htmltable << "<td style=\"text-align: right;\">" << value << "</td>";
                     }
                 }
             }
-            if(i + 1 != num_fields) {
-                datastream << "," << endl;
-            }
         }
-        datastream << "]" << endl;
+        htmltable << "</tr>";
         if (rowcount % 10000 == 0) {
             w.eval("document.getElementById('message').innerHTML = 'Retrieved " + to_string(rowcount) + " rows ...';");
         }
     }
-    w.eval("document.getElementById('message').innerHTML = 'Retrieved " + to_string(rowcount) + " rows, tabulating <blink>...</blink>'");
-    string data = datastream.str();
+    htmltable << "</tbody></table>";
+    w.eval("document.getElementById('message').innerHTML = 'Retrieved " + to_string(rowcount) + " rows, HTML is tabulating <blink>...</blink>'");
     mysql_free_result(runresult);
-    return "{\"message\":\"Retrieved " + to_string(rowcount) + " rows\", \"catalog\":\"" + escape_json(catalog) + "\", \"schema\":\"" + escape_json(schema) + "\",\"sql\":\"" + escape_json(sql) + "\", \"result\":true,\"columns\":{\"column\":[" + columnstream.str() + "], \"columnname\":{" + columnnamestream.str() + "}},\"data\":[" + data + "],\"rowcount\":\"" + to_string(rowcount) + "\",\"num_fields\":\"" + to_string(num_fields) + "\"}";
+    return "{\"message\":\"Retrieved " + to_string(rowcount) + " rows\", \"catalog\":\"" + escape_json(catalog) + "\", \"schema\":\"" + escape_json(schema) + "\",\"sql\":\"" + escape_json(sql) + "\", \"result\":true,\"columns\":{\"column\":[" + columnstream.str() + "], \"columnname\":{" + columnnamestream.str() + "}},\"rowcount\":\"" + to_string(rowcount) + "\",\"num_fields\":\"" + to_string(num_fields) + "\",\"htmltable\":\"" + base64_encode(htmltable.str()) + "\"}";
 }
 
 #ifdef WIN32
