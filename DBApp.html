@@ -1,6 +1,14 @@
 <html>
     <head>
-        
+        <style>
+			/* highlight styles */
+			.ldt .comment { color: silver; }
+			.ldt .string { color: red; }
+			.ldt .number { color: orange; }
+			.ldt .keyword { color: lightgreen; }
+			.ldt .variable { color: cyan; }
+			.ldt .define { color: blue; }
+        </style>
     </head>
     <body>
         <div class="overlay" id="overlay"></div>
@@ -56,7 +64,8 @@
                             <span id="tablelist"></span>
                         </schemainfo>
                         <query id="query">
-                            <textarea id="sql" placeholder="Write your SQL here" style="width: 100%;height: 1000%;background-color: darkgrey;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+                            <!-- <textarea id="sqlx" placeholder="Write your SQL here" style="width: 100%;height: 1000%;background-color: darkgrey;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea> -->
+                            <textarea id="sql" placeholder="Write your SQL here" style="width: 100%;height: 1000%;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
                         </query>
                     </action>
                     <results id="results">
@@ -76,5 +85,22 @@
         document.getElementById('server').value = server;
         document.getElementById('login').value = login;
         document.getElementById('password').value = password;
+        function $(e){ return document.getElementById(e); };
+        var parser = new Parser({
+            whitespace: /\s+/,
+            number: /0x[\dA-Fa-f]+|-?(\d+\.?\d*|\.\d+)|#[\dA-Fa-f]{3,6}/,
+            comment: /\/\*([^\*]|\*[^\/])*(\*\/?)?|(\/\/|#)[^\r\n]*|--\s+.*/,
+            string: /"(\\.|[^"\r\n])*"?|'(\\.|[^'\r\n])*'?/,
+            keyword: /([S,s][E,e][L,l][E,e][C,c][T,t]|[F,f][R,r][O,o][M,m]|[W,w][H,h][E,e][R,r][E,e]|[A,a][N,n][D,d]|[O,o][R,r]|[B,b][E,e][T,t][W,w][E,e][E,e][N,n]|[L,l][I,i][M,m][I,i][T,t]|[C,c][A,a][S,s][E,e]|[W,w][H,h][E,e][N,n]|[T,t][H,h][E,e][N,n]|[I,i][S,s]|[N,n][O,o][T,t]|[E,e][L,l][S,s][E,e]|[E,e][N,n][D,d]|[N,n][U,u][L,l][L,l]|[O,o][N,n]|[[L,l][E,e][F,f][T,t]|[R,r][I,i][G,g][H,h][T,t]|[O,o][U,u][T,t][E,e][R,r]|[J,j][O,o][I,i][N,n]|[H,h][A,a][V,v][I,i][N,n][G,g]|[L,l][I,i][K,k][E,e]|[O,o][R,r][D,d][E,e][R,r]|[B,b][Y,y]|[G,g][R,r][O,o][U,u][P,p])(?!\w|=)/i, /* i not working */
+            variable: /[\$\%\@](\->|\w)+(?!\w)|\${\w*}?/,
+            define: /[$A-Z_a-z0-9]+/,
+            op: /[\+\-\*\/=<>!]=?|[\(\)\{\}\[\]\.\|]/,
+            other: /\S/,
+        });
+        window.onload = function(){
+            var textarea = document.getElementById('sql');
+            textarea.value = '-- comment\nSELECT CURRENT_DATE ';
+            decorator = new TextareaDecorator( textarea, parser );
+        };
     </script>
 </html>

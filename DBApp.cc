@@ -666,7 +666,7 @@ int main() {
     page.append(urlencode("<style>"));
     page.append(urlencode(loadfile(rpath + "/DBApp.css")));
     page.append(urlencode(loadfile(rpath + "/sortable.css")));
-    page.append(urlencode(loadfile(rpath + "/prism.css")));
+    page.append(urlencode(loadfile(rpath + "/TextareaDecorator.css")));
     page.append(urlencode("</style>"));
     w.navigate(page.c_str());
 
@@ -687,8 +687,10 @@ int main() {
     // Load other JS support files
     w.init(loadfile(rpath + "/DBApp.js"));
     w.init(loadfile(rpath + "/sortable.js"));
-    w.init(loadfile(rpath + "/prism.js"));
-    w.init(loadfile(rpath + "/vue.global.js"));
+    w.init(loadfile(rpath + "/Keybinder.js"));
+    w.init(loadfile(rpath + "/Parser.js"));
+    w.init(loadfile(rpath + "/SelectHelper.js"));
+    w.init(loadfile(rpath + "/TextareaDecorator.js"));
 
     w.run();
     mysql_close(connection);

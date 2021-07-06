@@ -15,8 +15,9 @@ A database application that's super small and easy to develop. It really is smal
 * https://github.com/webview/webview as the framework to buiild the app with
 * Borrowed the Mac menus idea from lukevers webview fork https://github.com/lukevers/webview
 * https://github.com/tofsjonas/sortable to make HTML Tables sortable
+* Syntax highlighting supplied by https://prismjs.com (disabled for the moment) 
 * Borrowed the icon from DB Browser for SQLite ... for now, its so nice and simple
-* Syntax highlightiong supplied by https://prismjs.com
+* https://github.com/kueblc/LDT for Syntax highlighting
 
 # Issues
 * It's not even beta, it's alpha

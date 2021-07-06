@@ -132,7 +132,7 @@ function showSchemaInfo(sn) {
                 if (tabinfo.data[x].table_type == "VIEW") {
                     table_type = "&#128065;&#65039;";
                 }
-                txt += "<tr><td data-sort=\"" + tabinfo.data[x].table_name + "\"><a href=\"#\" onclick=\"document.getElementById('sql').value='SELECT *\\r\\nFROM " + schemaData[sn].schema + "." + tabinfo.data[x].table_name + "\\r\\nLIMIT 1000';return false;\" style=\"text-decoration: none;\">" + table_type + "&nbsp;" + tabinfo.data[x].table_name + "</a></td><td style=\"text-align:right\" data-sort=\"" + tr + "\">" + tr.toLocaleString() + "</td><td style=\"text-align:right\" data-sort=\"" + di + "\">" + dl.toLocaleString() + " / " + il.toLocaleString() + "</td><td style=\"text-align:right\" data-sort=\"" + di + "\">" + di.toLocaleString() + "</td><td>" + tabinfo.data[x].table_comment + "</td></tr>";
+                txt += "<tr><td data-sort=\"" + tabinfo.data[x].table_name + "\"><a href=\"#\" onclick=\"document.getElementById('sql').value='SELECT *\\r\\nFROM " + schemaData[sn].schema + "." + tabinfo.data[x].table_name + "\\r\\nLIMIT 1000';decorator.update();return false;\" style=\"text-decoration: none;\">" + table_type + "&nbsp;" + tabinfo.data[x].table_name + "</a></td><td style=\"text-align:right\" data-sort=\"" + tr + "\">" + tr.toLocaleString() + "</td><td style=\"text-align:right\" data-sort=\"" + di + "\">" + dl.toLocaleString() + " / " + il.toLocaleString() + "</td><td style=\"text-align:right\" data-sort=\"" + di + "\">" + di.toLocaleString() + "</td><td>" + tabinfo.data[x].table_comment + "</td></tr>";
             }
             txt += "</tbody></table>";
             document.getElementById('tablelist').innerHTML = txt;
