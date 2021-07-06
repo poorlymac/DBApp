@@ -8,10 +8,46 @@
 #include </usr/local/Cellar/mysql-client/8.0.25/include/mysql/mysql.h>
 #include "webview.h"
 #include "DBApp.h"
+typedef unsigned char uchar;
 
 using namespace std;
 
 webview::webview w(true, nullptr);
+
+// https://stackoverflow.com/questions/180947/base64-decode-snippet-in-c
+
+static std::string base64_encode(const std::string &in) {
+    std::string out;
+    int val = 0, valb = -6;
+    for (uchar c : in) {
+        val = (val << 8) + c;
+        valb += 8;
+        while (valb >= 0) {
+            out.push_back("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[(val>>valb)&0x3F]);
+            valb -= 6;
+        }
+    }
+    if (valb>-6) out.push_back("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[((val<<8)>>(valb+8))&0x3F]);
+    while (out.size()%4) out.push_back('=');
+    return out;
+}
+
+static std::string base64_decode(const std::string &in) {
+    std::string out;
+    std::vector<int> T(256,-1);
+    for (int i=0; i<64; i++) T["ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[i]] = i;
+    int val=0, valb=-8;
+    for (uchar c : in) {
+        if (T[c] == -1) break;
+        val = (val << 6) + T[c];
+        valb += 6;
+        if (valb >= 0) {
+            out.push_back(char((val>>valb)&0xFF));
+            valb -= 8;
+        }
+    }
+    return out;
+}
 
 string encryptDecrypt(string toEncrypt) {
     string key = "Wynona'sGotHerselfABigBrownBeaverAndSheShowsItOffToAllHerFriends";
@@ -361,7 +397,7 @@ string getDatabaseInformation() {
             mb_tot += mb;
             tables_tot += tables;
             views_tot += views;
-            datastream << "{\"catalog\":\"" + catalog + "\",\"schema\":\"" + schema + "\",\"charset\":\"" + charset + "\",\"collation\":\"" + collation + "\",\"mb\":\"" << mb << "\",\"tables\":\"" << tables << "\",\"views\":\"" << views << "\"},";
+            datastream << "{\"catalog\":\"" + catalog + "\",\"schema\":\"" + schema + "\",\"charset\":\"" + charset + "\",\"collation\":\"" + collation + "\",\"mb\":\"" << mb << "\",\"tables\":\"" << tables << "\",\"views\":\"" << views << "\"}," << endl;
         }
         data = datastream.str().substr(0, datastream.str().size() - 1); // truncate the last comma
     }
@@ -413,14 +449,14 @@ string runSQL(string catalog, string schema, string sql) {
     if (mysql_real_query(connection, sql.c_str(), strlen(sql.c_str()))) {
         return "{\"message\":\"Error running query: " + escape_json(mysql_error(connection)) + "\",\"sql\":\"" + escape_json(sql) + "\", \"result\":false}";
     }
-    result = mysql_use_result(&mysql);
+    MYSQL_RES *runresult = mysql_use_result(connection);
     stringstream datastream;
     stringstream columnstream;
     stringstream columnnamestream;
     char* p;
     unsigned long long rowcount = 0;
-    int num_fields = mysql_num_fields(result);
-    while ((row = mysql_fetch_row(result)) != NULL) {
+    int num_fields = mysql_num_fields(runresult);
+    while ((row = mysql_fetch_row(runresult)) != NULL) {
         if (rowcount != 0) {
             datastream << ",";
         } else {
@@ -429,35 +465,43 @@ string runSQL(string catalog, string schema, string sql) {
                     columnstream << ",";
                     columnnamestream << ",";
                 }
-                field = mysql_fetch_field_direct(result, i);
-                columnstream << "{\"name\":\"" << escape_json(field->name) << "\",\"type\":\"" << mysql_type(field->type) << "\"}";
-                columnnamestream << "\"" << escape_json(field->name) << "\":{\"type\":\"" << mysql_type(field->type) << "\", \"position\":" << i << "}";
+                field = mysql_fetch_field_direct(runresult, i);
+                columnstream << "{\"name\":\"" << escape_json(field->name) << "\",\"type\":\"" << mysql_type(field->type) << "\"}" << endl;
+                columnnamestream << "\"" << escape_json(field->name) << "\":{\"type\":\"" << mysql_type(field->type) << "\", \"position\":" << i << "}" << endl;
             }
         }
         rowcount++;
         datastream << "[";
         for(int i = 0; i < num_fields; i++) {
-            field = mysql_fetch_field_direct(result, i);
-            auto value = (row[i]==NULL?"":row[i]);
-            // Display numbers raw
-            long converted = strtol(value, &p, 10);
-            if (*p) {
-                datastream << "\"" << escape_json(value) << "\"";
+            field = mysql_fetch_field_direct(runresult, i);
+            if (row[i]==NULL) {
+                datastream << "\"\"";
             } else {
-                datastream << value;
+                auto value = row[i];
+                if(strlen(value) == 0) {
+                    datastream << "\"\"";
+                } else {
+                    // Display numbers raw
+                    long converted = strtol(value, &p, 10);
+                    if (*p) {
+                        datastream << "\"" << base64_encode(value) << "\"";
+                    } else {
+                        datastream << value;
+                    }
+                }
             }
             if(i + 1 != num_fields) {
-                datastream << ",";
+                datastream << "," << endl;
             }
         }
-        datastream << "]";
+        datastream << "]" << endl;
         if (rowcount % 10000 == 0) {
-            w.eval("document.getElementById('result').innerHTML = 'Retrieved " + to_string(rowcount) + " rows ..';");
+            w.eval("document.getElementById('message').innerHTML = 'Retrieved " + to_string(rowcount) + " rows ...';");
         }
     }
-    w.eval("document.getElementById('result').innerHTML = 'Retrieved " + to_string(rowcount) + " rows, tabulating';");
+    w.eval("document.getElementById('message').innerHTML = 'Retrieved " + to_string(rowcount) + " rows, tabulating <blink>...</blink>'");
     string data = datastream.str();
-    mysql_free_result(result);
+    mysql_free_result(runresult);
     return "{\"message\":\"Retrieved " + to_string(rowcount) + " rows\", \"catalog\":\"" + escape_json(catalog) + "\", \"schema\":\"" + escape_json(schema) + "\",\"sql\":\"" + escape_json(sql) + "\", \"result\":true,\"columns\":{\"column\":[" + columnstream.str() + "], \"columnname\":{" + columnnamestream.str() + "}},\"data\":[" + data + "],\"rowcount\":\"" + to_string(rowcount) + "\",\"num_fields\":\"" + to_string(num_fields) + "\"}";
 }
 
@@ -556,7 +600,7 @@ int main() {
     mysql_init(&mysql);
     mysql_options(&mysql, MYSQL_OPT_CONNECT_TIMEOUT, &conn_timeout);
     w.set_title("DBApp");
-    w.set_size(1280, 1024, WEBVIEW_HINT_NONE);
+    w.set_size(1500, 1000, WEBVIEW_HINT_NONE);
     w.set_size(180, 120, WEBVIEW_HINT_MIN);
 
     // login function
@@ -586,7 +630,7 @@ int main() {
     w.bind("wvlogout", [](std::string s) -> std::string {
         s = "No Connection closed";
         if (connection != NULL) {
-            s = "Closing Database Connection";
+            s = "Closed Database Connection";
             mysql_close(connection);
             connection = NULL;
         }
@@ -602,6 +646,7 @@ int main() {
 
     // tables function
     w.bind("wvschemas", [](std::string s) -> std::string {
+        webview::json_parse(s, "", 0);
         return getDatabaseInformation();
     });
 

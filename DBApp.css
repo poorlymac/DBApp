@@ -1,108 +1,171 @@
-#container {
-    position: relative;
-}
-#loginview {
-    position: absolute;
-}
-#dbview {
-    position: absolute;
-}
-.main-head {
-    grid-area: header;
-}
-.content {
-    grid-area: content;
-}
-.main-nav {
-    grid-area: nav;
-}
-.main-footer {
-    grid-area: footer;
-}
-.wrapper {
+body {
+    vertical-align: text-top;
+    margin: 0;
+    padding: 0;
     display: grid;
-    gap: 20px;
-    grid-template-areas:
-        "header"
-        "nav"
-        "content"
-        "footer";
-}
-@media (min-width: 500px) {
-    .wrapper {
-        grid-template-columns: 1fr 3fr;
-        grid-template-areas:
-            "header  header"
-            "nav     nav"
-            "content content"
-            "footer  footer";
-    }
-    nav ul {
-        display: flex;
-        justify-content: space-between;
-    }
-}
-@media (min-width: 700px) {
-    .wrapper {
-        grid-template-columns: 2fr 4fr;
-        grid-template-areas:
-            "header header"
-            "nav    content"
-            "nav    content"
-            "footer footer "
-    }
-    nav ul {
-        flex-direction: column;
-    }
-}
+    height: 100vh;
+    grid-template-rows: 50px 1fr 20px;
+    font-family: system-ui, sans-serif;
+  }
 
+  header {
+    background: whitesmoke;
+  }
 
-/* prism code editing support */
-#editing, #highlighting {
-    /* Both elements need the same text and space styling so they are directly on top of each other */
-    margin: 10px;
-    padding: 10px;
-    border: 0;
-    width: calc(100% - 32px);
-    height: 150px;
-}
+  main {
+    background: lightgray;
+  }
 
-#editing, #highlighting, #highlighting * {
-    /* Also add text styles to highlighting tokens */
-    font-size: 15pt;
-    font-family: monospace;
-    line-height: 20pt;
-}
+  footer {
+    background: whitesmoke;
+  }
 
-#editing, #highlighting {
-    position: absolute;
+  databases {
+    display: grid;
+    width: 100vw;
+    height: 79vh;
+    grid-template-columns: auto 1fr;
+  }
+
+  schemas {
+    overflow: scroll;
+    width: 300px;
+    height: 89vh;
+  }
+
+  activity {
+    display: grid;
+    width: 100%;
+    height: 86vh;
+    grid-template-rows: auto auto auto;
+  }
+
+  action {
+    display: grid;
+    width: 100%;
+    height: 35vh;
+    grid-template-columns: 50% 50%;
+    border: 1px solid gray;
+  }
+
+  schemainfo {
+    overflow: scroll;
+    /* background: gray; */
+  }
+
+  query {
+    overflow: scroll;
+    background: gray;
+  }
+
+  results {
+    color: lightgray;
+    overflow: scroll;
+    /* background: black; */
+    height: 50vh;
+  }
+
+  message {
+    color: green;
+    height: 10px;
+    text-align: center;
+  }
+
+  blink {
+    -webkit-animation: 2s linear infinite condemned_blink_effect;
+    /* for Safari 4.0 - 8.0 */
+    animation: 2s linear infinite condemned_blink_effect;
+  }
+
+  /* for Safari 4.0 - 8.0 */
+  @-webkit-keyframes condemned_blink_effect {
+    0% {
+      visibility: hidden;
+    }
+
+    50% {
+      visibility: hidden;
+    }
+
+    100% {
+      visibility: visible;
+    }
+  }
+
+  @keyframes condemned_blink_effect {
+    0% {
+      visibility: hidden;
+    }
+
+    50% {
+      visibility: hidden;
+    }
+
+    100% {
+      visibility: visible;
+    }
+  }
+
+  .sortable {
+    width: 100%;
+    border: 1px solid gray;
+  }
+
+  .sortable thead>tr:first-child>th {
+    position: sticky;
+    border-collapse: separate;
+    top: 0;
+    color: black;
+    background-color: darkgray;
+  }
+
+  ::placeholder {
+    /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: red;
+    opacity: 1;
+    /* Firefox */
+  }
+
+  .overlay {
+    position: fixed;
     top: 0;
     left: 0;
-}
+    height: 100%;
+    width: 100%;
+    z-index: 10;
+    background-color: rgba(0, 0, 0, 0.8);
+  }
 
-/* Move the textarea in front of the result */
-#editing {
-    z-index: 1;
-}
-  
-#highlighting {
-    z-index: 0;
-}
+  .modal {
+    width: 500px;
+    height: 200px;
+    line-height: 200px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    margin-top: -100px;
+    margin-left: -150px;
+    background-color: lightgray;
+    border-radius: 5px;
+    text-align: center;
+    vertical-align: middle;
+    z-index: 11;
+    /* 1px higher than the overlay layer */
+  }
 
-/* Make textarea almost completely transparent */
-#editing {
-    color: transparent;
-    background: transparent;
-    caret-color: white; /* Or choose your favorite color */
-}
+  ul {
+    font-size: 80%;
+    list-style-type: none;
+    margin: 5px;
+    padding: 0;
+  }
 
-/* Can be scrolled */
-#editing, #highlighting {
-    overflow: auto;
-    white-space: nowrap; /* Allows textarea to scroll horizontally */
-}
+  .database {
+    width: 20px;
+    height: 30px;
+    display: inline-block;
+    /* position: absolute; */
+    background: url("data:image/png;base64,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") no-repeat;
+    background-position: center bottom;
 
-/* No resize on textarea */
-#editing {
-    resize: none;
-}
+  }

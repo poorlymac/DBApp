@@ -1,7 +1,8 @@
 # DBApp
 A database application that's super small and easy to develop. It really is small, as a Mac app it's 11MB and 500kb of that is the app and the rest is the MySQL support. Currently only supports MySQL (and therefore possibly MariaDB)
 
-# Screenshot
+# Screenshots
+![DBApp Login](Login.png)
 ![DBApp Screenshot](DBApp.png)
 
 # Developer Notes

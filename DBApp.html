@@ -1,41 +1,80 @@
-<div id="container">
-    <div id="loginview" style="visibility: visible;">
-        <table>
-            <tr><th style="text-align:left">Server</th><td><input type="text" name="server" id="server" value="" size="60" /><td></tr>
-            <tr><th style="text-align:left">Login</th><td><input type="text" name="login" id="login" value="" /><td></tr>
-            <tr><th style="text-align:left">Password</th><td><input type="password" name="password" id="password" value="" /><td></tr>
-        </table>
-        <button name="Login" id="loginButton" onclick="doLogin()">Login</button><div id="message"></div>
-    </div>
-    <div id="dbview" class="wrapper" style="visibility: hidden;">
-        <header class="main-head" id="header"></header>
-        <nav class="main-nav">
-                <button name="Refresh" id="refreshButton" onclick="refreshSchemas()">Refresh</button>
-                <ul id="schemas">
-                </ul>
-        </nav>
-        <article class="content">
-            <input type="hidden" id="catalog" value="" />
-            <input type="hidden" id="schema" value="" />
-            <div style="position: relative;width: 100%;height: 200px">
-                <div style="position: relative;width: 100%;height: 200px">
-                    <textarea id="editing" spellcheck="false" oninput="update(this.value);" onscroll="sync_scroll(this);" onkeydown="check_tab(this, event);"></textarea>
-                    <pre id="highlighting" aria-hidden="true">
-                        <code class="language-sql" id="highlighting-content"></code>
-                    </pre>    
-                </div>
-            </div>
-            <button id="runsql" onclick="runSQL()">Run SQL</button><button onclick="document.getElementById('result').innerHTML=''">Clear</button><br>
-            <div id="result"></div><br>
-            <pre id="content">Click on a schema to see its information</pre>
-        </article>
-        <footer class="main-footer" id="footer"></footer>
-    </div>    
-</div>
-
-<script language="JavaScript">
-    /* These values have been set in the c++ app, set them on screen load */
-    document.getElementById('server').value = server;
-    document.getElementById('login').value = login;
-    document.getElementById('password').value = password;
-</script>
+<html>
+    <head>
+        
+    </head>
+    <body>
+        <div class="overlay" id="overlay"></div>
+        <div class="modal" id="modal">
+            <table style="width: 100%;">
+                <tr>
+                    <th colspan="2">Login Details:</th>
+                </tr>
+                <tr>
+                    <th style="text-align:left;">Server</th>
+                    <td><input type="text" name="server" id="server" value="" size="57" />
+                    <td>
+                </tr>
+                <tr>
+                    <th style="text-align:left;">Login</th>
+                    <td><input type="text" name="login" id="login" value="" />
+                    <td>
+                </tr>
+                <tr>
+                    <th style="text-align:left;">Password</th>
+                    <td><input type="password" name="password" id="password" value="" />
+                    <td>
+                </tr>
+                <tr>
+                    <th colspan="2"><button name="Login" id="loginButton" onclick="doLogin()"
+                            style="float: right;background-color: black;color: white;"><b>Login</b></button></th>
+                </tr>
+                <tr>
+                    <th colspan="2">
+                        <div id="loginmessage"></div>
+                    </th>
+                </tr>
+            </table>
+        </div>
+        <header>
+            &nbsp;<b>DBApp</b> <span id="systemInfo"></span>
+            <button id="logout" style="float: right;" disabled="true" onclick="doLogout()">Logout</button>
+            <button id="clear"  style="float: right;" disabled="true" onclick="document.getElementById('results').innerHTML=''">Clear Results</button>
+            <button id="runsql" style="float: right;" disabled="true" onclick="runSQL()">Run SQL</button>
+        </header>
+        <main>
+            <databases>
+                <input type="hidden" id="catalog" value="def" />
+                <input type="hidden" id="schema" value="mysql" />
+                <schemas>
+                    <span id="schemasinfo" style="color: gray;">&nbsp;Fetching Schemas <blink>...</blink></span>
+                    <ul id="schemas"></ul>
+                </schemas>
+                <activity>
+                    <action>
+                        <schemainfo>
+                            &nbsp;<span class="database"></span> <span id="schemainfo"></span></u>
+                            <span id="tablelist"></span>
+                        </schemainfo>
+                        <query id="query">
+                            <textarea id="sql" placeholder="Write your SQL here" style="width: 100%;height: 1000%;background-color: darkgrey;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+                        </query>
+                    </action>
+                    <results id="results">
+                    </results>
+                    <message>
+                        <span id="message">Message</span>
+                    </message>
+                </activity>
+            </databases>
+        </main>
+        <footer>
+            BPApp &minus; V0.1 2021
+        </footer>
+    </body>
+    <script language="JavaScript">
+        /* These values have been set in the c++ app, set them on screen load */
+        document.getElementById('server').value = server;
+        document.getElementById('login').value = login;
+        document.getElementById('password').value = password;
+    </script>
+</html>
