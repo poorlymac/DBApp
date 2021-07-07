@@ -408,7 +408,7 @@ string getDatabaseInformation() {
 string getDatabaseTableInformation(string catalog, string schema) {
     // Get the list of tables
     // TODO protect from injection
-    string sql = "SELECT table_name, table_type, engine, table_rows, COALESCE(ROUND(data_length / 1024 / 1024, 2), 0), COALESCE(ROUND(index_length / 1024 / 1024, 2), 0), table_comment FROM information_schema.tables t WHERE table_schema = '" + schema + "' AND table_catalog = '" + catalog + "' ORDER BY table_type, table_name";
+    string sql = "SELECT t.table_name, t.table_type, t.engine, t.table_rows, COALESCE(ROUND(t.data_length / 1024 / 1024, 2), 0), COALESCE(ROUND(t.index_length / 1024 / 1024, 2), 0), t.table_comment, GROUP_CONCAT(CASE WHEN c.column_name LIKE '% %' THEN CONCAT('`', c.column_name, '`') ELSE c.column_name END ORDER BY c.ordinal_position SEPARATOR ', ') columns FROM information_schema.tables t LEFT OUTER JOIN information_schema.columns c ON t.table_schema = c.table_schema AND t.table_name = c.table_name WHERE t.table_schema = '" + schema + "' AND t.table_catalog = '" + catalog + "' GROUP BY t.table_name ORDER BY t.table_type, t.table_name";
     int state = mysql_query(connection, sql.c_str());
     if (state !=0) {
         return "{\"message\":\"Error getting table information: " + std::string(mysql_error(connection)) + "\", \"result\":false}";
@@ -432,10 +432,11 @@ string getDatabaseTableInformation(string catalog, string schema) {
             unsigned long long data_length  = atoll(row[4]==NULL?"":row[4]);
             unsigned long long index_length = atoll(row[5]==NULL?"":row[5]);
             string table_comment = row[6]==NULL?"":row[6];
+            string columns = row[7]==NULL?"":row[7];
             data_length_tot += data_length;
             index_length_tot += index_length;
             table_rows_tot += table_rows;
-            datastream << "{\"table_name\":\"" + escape_json(table_name) + "\",\"table_type\":\"" + escape_json(table_type) + "\",\"engine\":\"" + escape_json(engine) + "\",\"table_rows\":\"" << table_rows << "\",\"data_length\":\"" << data_length << "\",\"index_length\":\"" << index_length << "\",\"table_comment\":\"" + escape_json(table_comment) + "\"}";
+            datastream << "{\"table_name\":\"" + escape_json(table_name) + "\",\"table_type\":\"" + escape_json(table_type) + "\",\"engine\":\"" + escape_json(engine) + "\",\"table_rows\":\"" << table_rows << "\",\"data_length\":\"" << data_length << "\",\"index_length\":\"" << index_length << "\",\"table_comment\":\"" + escape_json(table_comment) + "\",\"columns\":\"" + escape_json(columns) + "\"}";
         }
     }
     mysql_free_result(result);

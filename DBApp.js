@@ -121,21 +121,25 @@ function showSchemaInfo(sn) {
         schemaData[sn].schema
     ).then(
         function(tabinfo) {
-            document.getElementById('schemainfo').innerHTML = "<button onclick=\"showSchemaInfo(" + sn + ")\" style=\"float: right;\">Refresh</button><b>" + schemaData[sn].schema + "</b>&nbsp;" + parseFloat(schemaData[sn].mb).toLocaleString() + "MB&nbsp;" + parseInt(schemaData[sn].tables).toLocaleString() + "&nbsp;Tables&nbsp;(" + schemaData[sn].catalog + "&nbsp;" + schemaData[sn].charset + "." + schemaData[sn].collation + ")";
-            var txt = "<table class='sortable' style='font-size:75%'><thead><tr><th>Table Name</th><th>~ Rows</th><th>~ Data / Index (MB)</th><th>~ Total (MB)</th><th>Comment</th></thead></tr><tbody>";
-            for (var x in tabinfo.data) {
-                var tr = parseFloat(tabinfo.data[x].table_rows);
-                var dl = parseFloat(tabinfo.data[x].data_length);
-                var il = parseFloat(tabinfo.data[x].index_length);
-                var di = dl + il;
-                var table_type = "&#128202;";
-                if (tabinfo.data[x].table_type == "VIEW") {
-                    table_type = "&#128065;&#65039;";
+            if (tabinfo.result) {
+                document.getElementById('schemainfo').innerHTML = "<button onclick=\"showSchemaInfo(" + sn + ")\" style=\"float: right;\">Refresh</button><b>" + schemaData[sn].schema + "</b>&nbsp;" + parseFloat(schemaData[sn].mb).toLocaleString() + "MB&nbsp;" + parseInt(schemaData[sn].tables).toLocaleString() + "&nbsp;Tables&nbsp;(" + schemaData[sn].catalog + "&nbsp;" + schemaData[sn].charset + "." + schemaData[sn].collation + ")";
+                var txt = "<table class='sortable' style='font-size:75%'><thead><tr><th>Table Name</th><th>~ Rows</th><th>~ Data / Index (MB)</th><th>~ Total (MB)</th><th>Comment</th></thead></tr><tbody>";
+                for (var x in tabinfo.data) {
+                    var tr = parseFloat(tabinfo.data[x].table_rows);
+                    var dl = parseFloat(tabinfo.data[x].data_length);
+                    var il = parseFloat(tabinfo.data[x].index_length);
+                    var di = dl + il;
+                    var table_type = "&#128202;";
+                    if (tabinfo.data[x].table_type == "VIEW") {
+                        table_type = "&#128065;&#65039;";
+                    }
+                    txt += "<tr><td data-sort=\"" + tabinfo.data[x].table_name + "\"><a href=\"#\" onclick=\"document.getElementById('sql').value = document.getElementById('sql').value + 'SELECT " + tabinfo.data[x].columns + "\\r\\nFROM " + schemaData[sn].schema + "." + tabinfo.data[x].table_name + "\\r\\nLIMIT 1000;\\r\\n';decorator.update();return false;\" style=\"text-decoration: none;\">" + table_type + "&nbsp;" + tabinfo.data[x].table_name + "</a></td><td style=\"text-align:right\" data-sort=\"" + tr + "\"><a href=\"#\" onclick=\"document.getElementById('sql').value = document.getElementById('sql').value + 'SELECT COUNT(*)\\r\\nFROM " + schemaData[sn].schema + "." + tabinfo.data[x].table_name + ";\\r\\n';decorator.update();return false;\" style=\"text-decoration: none;\">" + tr.toLocaleString() + "</a></td><td style=\"text-align:right\" data-sort=\"" + di + "\">" + dl.toLocaleString() + " / " + il.toLocaleString() + "</td><td style=\"text-align:right\" data-sort=\"" + di + "\">" + di.toLocaleString() + "</td><td>" + tabinfo.data[x].table_comment + "</td></tr>";
                 }
-                txt += "<tr><td data-sort=\"" + tabinfo.data[x].table_name + "\"><a href=\"#\" onclick=\"document.getElementById('sql').value = document.getElementById('sql').value + 'SELECT *\\r\\nFROM " + schemaData[sn].schema + "." + tabinfo.data[x].table_name + "\\r\\nLIMIT 1000;\\r\\n';decorator.update();return false;\" style=\"text-decoration: none;\">" + table_type + "&nbsp;" + tabinfo.data[x].table_name + "</a></td><td style=\"text-align:right\" data-sort=\"" + tr + "\"><a href=\"#\" onclick=\"document.getElementById('sql').value = document.getElementById('sql').value + 'SELECT COUNT(*)\\r\\nFROM " + schemaData[sn].schema + "." + tabinfo.data[x].table_name + ";\\r\\n';decorator.update();return false;\" style=\"text-decoration: none;\">" + tr.toLocaleString() + "</a></td><td style=\"text-align:right\" data-sort=\"" + di + "\">" + dl.toLocaleString() + " / " + il.toLocaleString() + "</td><td style=\"text-align:right\" data-sort=\"" + di + "\">" + di.toLocaleString() + "</td><td>" + tabinfo.data[x].table_comment + "</td></tr>";
+                txt += "</tbody></table>";
+                document.getElementById('tablelist').innerHTML = txt;
+            } else {
+                document.getElementById('message').innerHTML = tabinfo.message;
             }
-            txt += "</tbody></table>";
-            document.getElementById('tablelist').innerHTML = txt;
         }
     );
 }
