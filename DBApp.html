@@ -99,7 +99,7 @@
         });
         window.onload = function(){
             var textarea = document.getElementById('sql');
-            textarea.value = '-- comment\nSELECT CURRENT_DATE ';
+            textarea.value = '-- comment\r\nSELECT CURRENT_DATE;\r\n';
             decorator = new TextareaDecorator( textarea, parser );
         };
     </script>

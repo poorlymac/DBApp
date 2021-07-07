@@ -38,7 +38,7 @@ function doLogin() {
             loggedinresponse = true;
             document.getElementById('loginButton').disabled = false;
             if (res.result) {
-                document.getElementById('systemInfo').innerHTML = " mysql://" + login + "@" + server + "/ (" + res.version + ") <span class='database'></span> " + parseInt(res.data.length).toLocaleString() + " &#8611; &#128202; " + parseInt(res.tables_tot).toLocaleString() + " &#8611; &#128065;&#65039; " + parseInt(res.views_tot).toLocaleString() + " &#8611; " + Math.round(parseFloat(res.mb_tot)).toLocaleString() + " MB";
+                document.getElementById('systemInfo').innerHTML = " mysql://" + login + "@" + server + "/ (" + res.version + ") <span class='database'></span> " + parseInt(res.data.length).toLocaleString() + " &#128202; " + parseInt(res.tables_tot).toLocaleString() + " &#128065;&#65039; " + parseInt(res.views_tot).toLocaleString() + " = " + Math.round(parseFloat(res.mb_tot)).toLocaleString() + " MB";
                 document.getElementById('message').innerHTML = res.message;
                 document.getElementById('message').style.color = "green";
                 document.getElementById('logout').disabled = false;
@@ -132,7 +132,7 @@ function showSchemaInfo(sn) {
                 if (tabinfo.data[x].table_type == "VIEW") {
                     table_type = "&#128065;&#65039;";
                 }
-                txt += "<tr><td data-sort=\"" + tabinfo.data[x].table_name + "\"><a href=\"#\" onclick=\"document.getElementById('sql').value='SELECT *\\r\\nFROM " + schemaData[sn].schema + "." + tabinfo.data[x].table_name + "\\r\\nLIMIT 1000';decorator.update();return false;\" style=\"text-decoration: none;\">" + table_type + "&nbsp;" + tabinfo.data[x].table_name + "</a></td><td style=\"text-align:right\" data-sort=\"" + tr + "\">" + tr.toLocaleString() + "</td><td style=\"text-align:right\" data-sort=\"" + di + "\">" + dl.toLocaleString() + " / " + il.toLocaleString() + "</td><td style=\"text-align:right\" data-sort=\"" + di + "\">" + di.toLocaleString() + "</td><td>" + tabinfo.data[x].table_comment + "</td></tr>";
+                txt += "<tr><td data-sort=\"" + tabinfo.data[x].table_name + "\"><a href=\"#\" onclick=\"document.getElementById('sql').value = document.getElementById('sql').value + 'SELECT *\\r\\nFROM " + schemaData[sn].schema + "." + tabinfo.data[x].table_name + "\\r\\nLIMIT 1000;\\r\\n';decorator.update();return false;\" style=\"text-decoration: none;\">" + table_type + "&nbsp;" + tabinfo.data[x].table_name + "</a></td><td style=\"text-align:right\" data-sort=\"" + tr + "\"><a href=\"#\" onclick=\"document.getElementById('sql').value = document.getElementById('sql').value + 'SELECT COUNT(*)\\r\\nFROM " + schemaData[sn].schema + "." + tabinfo.data[x].table_name + ";\\r\\n';decorator.update();return false;\" style=\"text-decoration: none;\">" + tr.toLocaleString() + "</a></td><td style=\"text-align:right\" data-sort=\"" + di + "\">" + dl.toLocaleString() + " / " + il.toLocaleString() + "</td><td style=\"text-align:right\" data-sort=\"" + di + "\">" + di.toLocaleString() + "</td><td>" + tabinfo.data[x].table_comment + "</td></tr>";
             }
             txt += "</tbody></table>";
             document.getElementById('tablelist').innerHTML = txt;
@@ -146,6 +146,21 @@ function runSQL() {
     document.getElementById('message').innerHTML = "";
     document.getElementById('results').innerHTML = "";
     document.getElementById('runsql').disabled = true;
+    var sqlta = document.getElementById('sql');
+    let sql = sqlta.value.substring(sqlta.selectionStart, sqlta.selectionEnd);
+    if (sqlta.selectionStart == sqlta.selectionEnd) {
+        if (sqlta.selectionStart == sqlta.value.length - 1) {
+            sqlta.selectionStart = sqlta.selectionStart - 1;
+            sqlta.selectionEnd = sqlta.selectionEnd - 1;
+        }
+        var nextcolon = sqlta.value.substring(sqlta.selectionStart).indexOf(";");
+        var selectionEnd = sqlta.selectionStart + nextcolon;
+        if (nextcolon == -1) {
+            selectionEnd = sqlta.value.length;
+        }
+        var selectionStart = sqlta.value.substring(0, sqlta.selectionStart).lastIndexOf(";");
+        sql = sqlta.value.substring(selectionStart + 1, selectionEnd + 1);
+    }
     setTimeout(() => {
         if(!this.sqlresponse) {
             document.getElementById('runsql').disabled = false;
@@ -156,13 +171,14 @@ function runSQL() {
     wvsql(
         document.getElementById('catalog').value,
         document.getElementById('schema').value,
-        document.getElementById('sql').value
+        sql
     ).then(
         function(res) {
             this.sqlresponse = true;
             document.getElementById('runsql').disabled = false;
             document.getElementById('message').innerHTML = res.message;
             if (res.result) {
+                /* We are relying on the C++ backend to create the table for better speed */
                 document.getElementById('results').innerHTML = atob(res.htmltable);
             }
         }
