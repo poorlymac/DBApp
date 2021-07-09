@@ -42,12 +42,12 @@
 	<key>CFBundleIconFile</key>
 	<string>DBApp.icns</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>10.15.0</string>
+	<string>11.0</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>© 2021 Paul Schaap</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>1.1</string>
 </dict>
 </plist>

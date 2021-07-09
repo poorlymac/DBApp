@@ -21,7 +21,7 @@ if [ "$(uname)" == "Darwin" ]; then
     DEV_ID="" # <-- Put your Apple Developer ID in here if you wish to codesign
     rm -f DBApp.app/Contents/MacOS/DBApp
     # Statically compile in mysql client, ssl and crypto stuff
-    c++ DBApp.cc -std=c++11 -framework WebKit -I/usr/local/include -I/usr/local/include/mysql -W  -L/usr/local/lib -lz /usr/local/lib/libzstd.a /usr/local/lib/libmysqlclient.a /usr/local/Cellar/openssl@1.1/1.1.1k/lib/libcrypto.a /usr/local/Cellar/openssl@1.1/1.1.1k/lib/libssl.a -o DBApp.app/Contents/MacOS/DBApp
+    c++ DBApp.cc -mmacosx-version-min=11.0 -std=c++11 -framework WebKit -I/usr/local/include -I/usr/local/include/mysql -W  -L/usr/local/lib -lz /usr/local/lib/libzstd.a /usr/local/lib/libmysqlclient.a /usr/local/Cellar/openssl@1.1/1.1.1k/lib/libcrypto.a /usr/local/Cellar/openssl@1.1/1.1.1k/lib/libssl.a -o DBApp.app/Contents/MacOS/DBApp
     # Dynamic version
     # c++ DBApp.cc -std=c++11 -framework WebKit -I/usr/local/include -I/usr/local/include/mysql -W  -L/usr/local/lib -lmysqlclient -o DBApp.app/Contents/MacOS/DBApp
     if [ $? -eq 0 ]
@@ -55,6 +55,8 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     fi
 elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
     DEL DBApp.exe
+    curl -O https://github.com/webview/webview/blob/master/dll/x32/WebView2Loader.dll
+    curl -O https://github.com/webview/webview/blob/master/dll/x32/webview.dll
     c++ DBApp.cc -mwindows -L./dll/x32 -lwebview -lWebView2Loader -o DBApp.exe
     if [ $? -eq 0 ]
     then
@@ -63,6 +65,11 @@ elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
     fi
 elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]; then
     DEL DBApp.exe
+    MKDIR dll\x64
+    CD dll\x64
+    curl -O https://github.com/webview/webview/blob/master/dll/x64/WebView2Loader.dll
+    curl -O https://github.com/webview/webview/blob/master/dll/x64/webview.dll
+    CD ..\..
     c++ DBApp.cc -mwindows -L./dll/x64 -lwebview -lWebView2Loader -o DBApp.exe
     if [ $? -eq 0 ]
     then
