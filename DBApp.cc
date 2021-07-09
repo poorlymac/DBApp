@@ -101,29 +101,26 @@ string urlencode(string s) {
     return string(v.cbegin(), v.cend());
 }
 
-// Helpers to avoid too much typing
-id operator"" _cls(const char *s, std::size_t) { return (id)objc_getClass(s); }
-SEL operator"" _sel(const char *s, std::size_t) { return sel_registerName(s); }
-id operator"" _str(const char *s, std::size_t) {
-    return ((id(*)(id, SEL, const char *))objc_msgSend)("NSString"_cls, "stringWithUTF8String:"_sel, s);
-}
-
-static id create_menu_item(id title, const char *action, const char *key) {
-    #ifdef __APPLE__
-        id item = ((id(*)(id, SEL))objc_msgSend)((id)"NSMenuItem"_cls, "alloc"_sel);
-        ((id(*)(id, SEL, id, SEL, id))objc_msgSend)(
-            item,
-            "initWithTitle:action:keyEquivalent:"_sel,
-            title,
-            sel_registerName(action),
-            ((id(*)(id, SEL, const char *))objc_msgSend)("NSString"_cls, "stringWithUTF8String:"_sel, key)
-        );
-        ((id(*)(id, SEL))objc_msgSend)(item, "autorelease"_sel);
-        return item;
-    #else
-        return NULL;
-    #endif
-}
+ #ifdef __APPLE__
+    // Helpers to avoid too much typing
+    id operator"" _cls(const char *s, std::size_t) { return (id)objc_getClass(s); }
+    SEL operator"" _sel(const char *s, std::size_t) { return sel_registerName(s); }
+    id operator"" _str(const char *s, std::size_t) {
+        return ((id(*)(id, SEL, const char *))objc_msgSend)("NSString"_cls, "stringWithUTF8String:"_sel, s);
+    }
+    static id create_menu_item(id title, const char *action, const char *key) {
+            id item = ((id(*)(id, SEL))objc_msgSend)((id)"NSMenuItem"_cls, "alloc"_sel);
+            ((id(*)(id, SEL, id, SEL, id))objc_msgSend)(
+                item,
+                "initWithTitle:action:keyEquivalent:"_sel,
+                title,
+                sel_registerName(action),
+                ((id(*)(id, SEL, const char *))objc_msgSend)("NSString"_cls, "stringWithUTF8String:"_sel, key)
+            );
+            ((id(*)(id, SEL))objc_msgSend)(item, "autorelease"_sel);
+            return item;
+    }
+#endif
 
 std::string getEnvVar(std::string const& key) {
     char const* val = getenv(key.c_str()); 

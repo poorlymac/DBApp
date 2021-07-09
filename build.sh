@@ -21,6 +21,7 @@ if [ "$(uname)" == "Darwin" ]; then
     DEV_ID="" # <-- Put your Apple Developer ID in here if you wish to codesign
     rm -f DBApp.app/Contents/MacOS/DBApp
     # Statically compile in mysql client, ssl and crypto stuff
+    # -arch x86_64 -arch arm64 ... at some point
     c++ DBApp.cc -mmacosx-version-min=11.0 -std=c++11 -framework WebKit -I/usr/local/include -I/usr/local/include/mysql -W  -L/usr/local/lib -lz /usr/local/lib/libzstd.a /usr/local/lib/libmysqlclient.a /usr/local/Cellar/openssl@1.1/1.1.1k/lib/libcrypto.a /usr/local/Cellar/openssl@1.1/1.1.1k/lib/libssl.a -o DBApp.app/Contents/MacOS/DBApp
     # Dynamic version
     # c++ DBApp.cc -std=c++11 -framework WebKit -I/usr/local/include -I/usr/local/include/mysql -W  -L/usr/local/lib -lmysqlclient -o DBApp.app/Contents/MacOS/DBApp
@@ -47,7 +48,7 @@ if [ "$(uname)" == "Darwin" ]; then
     fi
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     rm -f DBApp
-    c++ DBApp.cc `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -I/usr/local/include -I/usr/local/include/mysql -W -lmysqlclient -L/usr/local/lib -static -o DBApp
+    c++ DBApp.cc `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -W -lmysqlclient -o DBApp
     if [ $? -eq 0 ]
     then
         ls -lah DBApp
