@@ -81,6 +81,10 @@
         </footer>
     </body>
     <script language="JavaScript">
+        /* track pressed keys globally so we can listen for Alt key etc. */
+        var pressedKeys = {};
+        window.onkeyup = function(e) { pressedKeys[e.keyCode] = false; }
+        window.onkeydown = function(e) { pressedKeys[e.keyCode] = true; }
         /* These values have been set in the c++ app, set them on screen load */
         document.getElementById('server').value = server;
         document.getElementById('login').value = login;
