@@ -408,7 +408,7 @@ string getDatabaseInformation() {
 string getDatabaseTableInformation(string catalog, string schema) {
     // Get the list of tables
     // TODO protect from injection
-    string sql = "SELECT t.table_name, t.table_type, t.engine, t.table_rows, COALESCE(ROUND(t.data_length / 1024 / 1024, 2), 0), COALESCE(ROUND(t.index_length / 1024 / 1024, 2), 0), t.table_comment, GROUP_CONCAT(CASE WHEN c.column_name LIKE '% %' THEN CONCAT('`', c.column_name, '`') ELSE c.column_name END ORDER BY c.ordinal_position SEPARATOR ', ') columns FROM information_schema.tables t LEFT OUTER JOIN information_schema.columns c ON t.table_schema = c.table_schema AND t.table_name = c.table_name WHERE t.table_schema = '" + schema + "' AND t.table_catalog = '" + catalog + "' GROUP BY t.table_name ORDER BY t.table_type, t.table_name";
+    string sql = "SELECT t.table_name, t.table_type, t.engine, t.table_rows, COALESCE(ROUND(t.data_length / 1024 / 1024, 2), 0), COALESCE(ROUND(t.index_length / 1024 / 1024, 2), 0), t.table_comment, GROUP_CONCAT(CASE WHEN c.column_name LIKE '% %' THEN CONCAT('`', c.column_name, '`') ELSE c.column_name END ORDER BY c.ordinal_position SEPARATOR ', ') columns FROM information_schema.tables t LEFT OUTER JOIN information_schema.columns c ON t.table_schema = c.table_schema AND t.table_name = c.table_name WHERE t.table_schema = '" + schema + "' AND t.table_catalog = '" + catalog + "' GROUP BY 1, 2, 3, 4, 5, 6, 7 ORDER BY t.table_type, t.table_name";
     int state = mysql_query(connection, sql.c_str());
     if (state !=0) {
         return "{\"message\":\"Error getting table information: " + std::string(mysql_error(connection)) + "\", \"result\":false}";
