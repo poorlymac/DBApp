@@ -49,11 +49,6 @@ if [ "$(uname)" == "Darwin" ]; then
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     rm -f DBApp
     c++ DBApp.cc `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -W -lmysqlclient -o DBApp
-    if [ $? -eq 0 ]
-    then
-        ls -lah DBApp
-        ./DBApp
-    fi
 elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
     DEL DBApp.exe
     curl -O https://github.com/webview/webview/blob/master/dll/x32/WebView2Loader.dll

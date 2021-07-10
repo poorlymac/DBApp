@@ -5,7 +5,7 @@
 #include <sstream>
 #include <iomanip>
 
-#include </usr/local/Cellar/mysql-client/8.0.25/include/mysql/mysql.h>
+#include <mysql/mysql.h>
 #include "webview.h"
 #include "DBApp.h"
 typedef unsigned char uchar;
