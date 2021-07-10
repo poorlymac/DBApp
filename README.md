@@ -6,8 +6,8 @@ A database application that's super small and easy to develop. It really is smal
 ![DBApp Screenshot](DBApp.png)
 
 # Developer Notes
-* Needs the brew installed mysql client library
-* Statically compiles in mysql and associated libs for easy distribution to the great unwashed
+* Needs the mysql client library
+* On OSX statically compiles in mysql and associated libs for easy distribution to the great unwashed
 * Uses some basic encryption on the password and saves the configuration to ~/.DBApp.cnf as JSON
 * Run build.sh to build and run
 
@@ -15,18 +15,16 @@ A database application that's super small and easy to develop. It really is smal
 * https://github.com/webview/webview as the framework to buiild the app with
 * Borrowed the Mac menus idea from lukevers webview fork https://github.com/lukevers/webview
 * https://github.com/tofsjonas/sortable to make HTML Tables sortable
-* Syntax highlighting supplied by https://prismjs.com (disabled for the moment) 
 * Borrowed the icon from DB Browser for SQLite ... for now, its so nice and simple
 * https://github.com/kueblc/LDT for Syntax highlighting
 
 # Issues
 * It's not even beta, it's alpha
-* It's super unpretty
+* It's unpretty
 * There are probably lots of little bugs &amp; memory leaks to find and fix
-* dodgy build.sh, untested on non-Mac
+* OS Build, docker linux build, Windows untested
 
 # ToDo
-* codesigning &amp; a release
 * Move the password storage to keychain on Mac
 * Treeview the tables into the schema list
 * etcetera ...
