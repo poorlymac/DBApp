@@ -18,6 +18,7 @@ xxd -i DBApp.html DBApp.h
 
 # Compile
 if [ "$(uname)" == "Darwin" ]; then
+    # security find-identity -v -p codesigning
     DEV_ID="" # <-- Put your Apple Developer ID in here if you wish to codesign
     rm -f DBApp.app/Contents/MacOS/DBApp
     # Statically compile in mysql client, ssl and crypto stuff
