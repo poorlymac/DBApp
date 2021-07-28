@@ -18,12 +18,21 @@ xxd -i DBApp.html DBApp.h
 
 # Compile
 if [ "$(uname)" == "Darwin" ]; then
+    mkdir -p DBApp.app/Contents/MacOS
+    mkdir -p DBApp.app/Contents/Resource
     # security find-identity -v -p codesigning
     DEV_ID="" # <-- Put your Apple Developer ID in here if you wish to codesign
     rm -f DBApp.app/Contents/MacOS/DBApp
     # Statically compile in mysql client, ssl and crypto stuff
     # -arch x86_64 -arch arm64 ... at some point
-    c++ DBApp.cc -mmacosx-version-min=11.0 -std=c++11 -framework WebKit -I/usr/local/include -I/usr/local/include/mysql -W  -L/usr/local/lib -lz /usr/local/lib/libzstd.a /usr/local/lib/libmysqlclient.a /usr/local/Cellar/openssl@1.1/1.1.1k/lib/libcrypto.a /usr/local/Cellar/openssl@1.1/1.1.1k/lib/libssl.a -o DBApp.app/Contents/MacOS/DBApp
+    if test -f /usr/local/lib/libmysqlclient.a
+    then
+        c++ DBApp.cc -mmacosx-version-min=11.0 -std=c++11 -framework WebKit -I/usr/local/include -I/usr/local/include/mysql -W  -L/usr/local/lib -lz /usr/local/lib/libzstd.a /usr/local/lib/libmysqlclient.a /usr/local/Cellar/openssl@1.1/1.1.1k/lib/libcrypto.a /usr/local/Cellar/openssl@1.1/1.1.1k/lib/libssl.a -o DBApp.app/Contents/MacOS/DBApp
+    fi
+    if test -f /opt/homebrew/lib/libmysqlclient.a
+    then
+        c++ -v -arch arm64 DBApp.cc -mmacosx-version-min=11.0 -std=c++11 -framework WebKit -I/opt/homebrew/include -I/opt/homebrew/include/mysql -W  -L/opt/homebrew/lib -lz /opt/homebrew/lib/libzstd.dylib /opt/homebrew/lib/libmysqlclient.a /opt/homebrew/Cellar/openssl@1.1/1.1.1k/lib/libcrypto.a /opt/homebrew/Cellar/openssl@1.1/1.1.1k/lib/libssl.a -o DBApp.app/Contents/MacOS/DBApp
+    fi
     # Dynamic version
     # c++ DBApp.cc -std=c++11 -framework WebKit -I/usr/local/include -I/usr/local/include/mysql -W  -L/usr/local/lib -lmysqlclient -o DBApp.app/Contents/MacOS/DBApp
     if [ $? -eq 0 ]
@@ -42,7 +51,10 @@ if [ "$(uname)" == "Darwin" ]; then
         cp TextareaDecorator.js  DBApp.app/Contents/Resources/
         if [ $? -eq 0 ]
         then
-            codesign -s "$DEV_ID" DBApp.app
+            if [ "$DEV_ID" != "" ]
+            then
+                codesign -s "$DEV_ID" DBApp.app
+            fi
             # DBApp.app/Contents/MacOS/DBApp # good for testing to look at outputs
             open DBApp.app
         fi

@@ -6,7 +6,7 @@ A database application that's super small and easy to develop. It really is smal
 ![DBApp Screenshot](DBApp.png)
 
 # Developer Notes
-* Needs the mysql client library
+* Needs the mysql client library (e.g. brew install mysql or just brew install mysql-client)
 * On OSX statically compiles in mysql and associated libs for easy distribution to the great unwashed
 * Uses some basic encryption on the password and saves the configuration to ~/.DBApp.cnf as JSON
 * Run build.sh to build and run
