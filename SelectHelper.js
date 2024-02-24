@@ -7,9 +7,11 @@
 var SelectHelper = {
 	add: function( element ){
 		element.insertAtCursor = element.createTextRange ?
+			
 			function(x){
 				document.selection.createRange().text = x;
 			} :
+			
 			function(x){
 				var s = element.selectionStart,
 					e = element.selectionEnd,

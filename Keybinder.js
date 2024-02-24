@@ -41,18 +41,25 @@ var Keybinder = {
 			123: "F12",
 			145: "ScrLk" };
 		var keyEventNormalizer = function(e){
+			
 			var e = e || window.event;
 			var query = "";
+			
 			e.shiftKey && (query += "Shift-");
 			e.ctrlKey && (query += "Ctrl-");
 			e.altKey && (query += "Alt-");
 			e.metaKey && (query += "Meta-");
+			
 			var key = e.which || e.keyCode || e.charCode;
+			
 			if( keyNames[key] )
 				query += keyNames[key];
+			
 			else
 				query += String.fromCharCode(key).toUpperCase();
 			/* DEBUG */
+			//console.log("keyEvent: "+query);
+			
 			if( element.keymap[query] && element.keymap[query]() ){
 				e.preventDefault && e.preventDefault();
 				e.stopPropagation && e.stopPropagation();
@@ -60,6 +67,8 @@ var Keybinder = {
 			}
 			return true;
 		};
+		
+		
 		var fireOnKeyPress = true;
 		element.onkeydown = function(e){
 			fireOnKeyPress = false;

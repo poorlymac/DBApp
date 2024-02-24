@@ -1,18 +1,18 @@
 #!/bin/bash
 
 # Get the most recent webview.h
-#curl -O https://raw.githubusercontent.com/webview/webview/master/webview.h
+curl -O https://raw.githubusercontent.com/webview/webview/master/webview.h
 # get the most recent sortable js and css
 # Strip comments as // comments break sthings
-curl https://raw.githubusercontent.com/tofsjonas/sortable/main/sortable.js | awk '{ if ($0 ~ /\/\/[[:space:]]/){ print substr($0, 0, index($0, "//") - 1) } else { print $0 }}' > sortable.js
-#curl -O https://raw.githubusercontent.com/tofsjonas/sortable/main/sortable.css
+curl https://raw.githubusercontent.com/tofsjonas/sortable/main/sortable.js  | awk '{ if ($0 ~ /\/\/[[:space:]]/){ print substr($0, 0, index($0, "//") - 1) } else { print $0 }}' > sortable.js
+curl https://raw.githubusercontent.com/tofsjonas/sortable/main/sortable.css | awk '{ if ($0 ~ /\/\/[[:space:]]/){ print substr($0, 0, index($0, "//") - 1) } else { print $0 }}' > sortable.css
 
 # I had to get these once and then remove // style comments as this breaks webview.h
-# curl -O https://raw.githubusercontent.com/kueblc/LDT/master/lib/Keybinder.js
-# curl -O https://raw.githubusercontent.com/kueblc/LDT/master/lib/Parser.js
-# curl -O https://raw.githubusercontent.com/kueblc/LDT/master/lib/SelectHelper.js
-# curl -O https://raw.githubusercontent.com/kueblc/LDT/master/lib/TextareaDecorator.css
-# curl -O https://raw.githubusercontent.com/kueblc/LDT/master/lib/TextareaDecorator.js
+curl https://raw.githubusercontent.com/kueblc/LDT/master/lib/Keybinder.js          | awk '{ if ($0 ~ /\/\/[[:space:]]/){ print substr($0, 0, index($0, "//") - 1) } else { print $0 }}' > Keybinder.js
+curl https://raw.githubusercontent.com/kueblc/LDT/master/lib/Parser.js             | awk '{ if ($0 ~ /\/\/[[:space:]]/){ print substr($0, 0, index($0, "//") - 1) } else { print $0 }}' > Parser.js
+curl https://raw.githubusercontent.com/kueblc/LDT/master/lib/SelectHelper.js       | awk '{ if ($0 ~ /\/\/[[:space:]]/){ print substr($0, 0, index($0, "//") - 1) } else { print $0 }}' > SelectHelper.js
+curl https://raw.githubusercontent.com/kueblc/LDT/master/lib/TextareaDecorator.css | awk '{ if ($0 ~ /\/\/[[:space:]]/){ print substr($0, 0, index($0, "//") - 1) } else { print $0 }}' > TextareaDecorator.css
+curl https://raw.githubusercontent.com/kueblc/LDT/master/lib/TextareaDecorator.js  | awk '{ if ($0 ~ /\/\/[[:space:]]/){ print substr($0, 0, index($0, "//") - 1) } else { print $0 }}' > TextareaDecorator.js
 
 # Convert main HTML into a header file
 xxd -i DBApp.html DBApp.h

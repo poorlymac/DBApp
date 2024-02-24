@@ -8,6 +8,7 @@ function Parser( rules, i ){
 	/* INIT */
 	var api = this;
 
+	
 	var i = i ? 'i' : '';
 	var parseRE = null;
 	var ruleSrc = [];
