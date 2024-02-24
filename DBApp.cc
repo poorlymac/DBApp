@@ -45,6 +45,7 @@ static std::string base64_decode(const std::string &in) {
             out.push_back(char((val>>valb)&0xFF));
             valb -= 8;
         }
+
     }
     return out;
 }
@@ -99,6 +100,27 @@ string urlencode(string s) {
         }
     }
     return string(v.cbegin(), v.cend());
+}
+
+string url_decode(string str){
+    string ret;
+    char ch;
+    int i, ii, len = str.length();
+
+    for (i=0; i < len; i++){
+        if(str[i] != '%'){
+            if(str[i] == '+')
+                ret += ' ';
+            else
+                ret += str[i];
+        }else{
+            sscanf(str.substr(i + 1, 2).c_str(), "%x", &ii);
+            ch = static_cast<char>(ii);
+            ret += ch;
+            i = i + 2;
+        }
+    }
+    return ret;
 }
 
  #ifdef __APPLE__
@@ -611,7 +633,7 @@ int main() {
         // Write config to file
         ofstream myconf;
         myconf.open(cnf);
-        myconf << "{\"server\":\"" +  escape_json(server) + "\", \"login\":\"" + escape_json(login) + "\", \"password\":\"" + escape_json(webview::url_encode(encryptDecrypt(password))) + "\"}";
+        myconf << "{\"server\":\"" +  escape_json(server) + "\", \"login\":\"" + escape_json(login) + "\", \"password\":\"" + escape_json(urlencode(encryptDecrypt(password))) + "\"}";
         myconf.close();
 
         // TODO MySQL Login
@@ -657,21 +679,23 @@ int main() {
 
     // Construct and load main HTML
     std::string s(DBApp_html, DBApp_html + DBApp_html_len);
-    std::string page = "data:text/html,";
-    page.append(urlencode(s));
-    // Add in any styles to the main page
-    page.append(urlencode("<style>"));
-    page.append(urlencode(loadfile(rpath + "/DBApp.css")));
-    page.append(urlencode(loadfile(rpath + "/sortable.css")));
-    page.append(urlencode(loadfile(rpath + "/TextareaDecorator.css")));
-    page.append(urlencode("</style>"));
-    w.navigate(page.c_str());
+    std::string page = "<html>";
+    page.append("<head>");
+    page.append("<style>");
+    page.append(loadfile(rpath + "/DBApp.css"));
+    page.append(loadfile(rpath + "/sortable.css"));
+    page.append(loadfile(rpath + "/TextareaDecorator.css"));
+    page.append("</style>");
+    page.append("</head>");
+    page.append(loadfile(rpath + "/DBApp.html"));
+    page.append("</html>");
+    w.set_html(page.c_str());
 
     string cnfstr = loadfile(cnf);
     if (cnfstr != "") {
         server   = webview::json_parse(cnfstr, "server", 0);
         login    = webview::json_parse(cnfstr, "login", 0);
-        auto password = encryptDecrypt(webview::url_decode(webview::json_parse(cnfstr, "password", 0)));
+        auto password = encryptDecrypt(url_decode(webview::json_parse(cnfstr, "password", 0)));
         w.init("var server = \"" + escape_json(server) + "\";");
         w.init("var login = \"" + escape_json(login) + "\";");
         w.init("var password = \"" + escape_json(password) + "\";");
@@ -680,10 +704,10 @@ int main() {
         w.init("var login = '';");
         w.init("var password = '';");
     }
-    
-    // Load other JS support files
+
+    // Load other JS support files, comment these out if debugging
+    w.init(loadfile(rpath + "/sortable.js")); // this is often
     w.init(loadfile(rpath + "/DBApp.js"));
-    w.init(loadfile(rpath + "/sortable.js"));
     w.init(loadfile(rpath + "/Keybinder.js"));
     w.init(loadfile(rpath + "/Parser.js"));
     w.init(loadfile(rpath + "/SelectHelper.js"));

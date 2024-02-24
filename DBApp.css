@@ -1,3 +1,11 @@
+/* highlight styles */
+.ldt .comment { color: silver; }
+.ldt .string { color: red; }
+.ldt .number { color: orange; }
+.ldt .keyword { color: lightgreen; }
+.ldt .variable { color: cyan; }
+.ldt .define { color: blue; }
+
 body {
     vertical-align: text-top;
     margin: 0;
