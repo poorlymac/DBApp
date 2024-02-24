@@ -4,7 +4,7 @@
 #curl -O https://raw.githubusercontent.com/webview/webview/master/webview.h
 # get the most recent sortable js and css
 # Strip comments as // comments break sthings
-curl https://raw.githubusercontent.com/tofsjonas/sortable/main/sortable.js | grep -v "// " > sortable.js
+curl https://raw.githubusercontent.com/tofsjonas/sortable/main/sortable.js | awk '{ if ($0 ~ /\/\/[[:space:]]/){ print substr($0, 0, index($0, "//") - 1) } else { print $0 }}' > sortable.js
 #curl -O https://raw.githubusercontent.com/tofsjonas/sortable/main/sortable.css
 
 # I had to get these once and then remove // style comments as this breaks webview.h
@@ -19,7 +19,6 @@ xxd -i DBApp.html DBApp.h
 
 # Compile
 if [ "$(uname)" == "Darwin" ]; then
-    rm -rf DBApp.app
     mkdir -p DBApp.app/Contents/MacOS
     mkdir -p DBApp.app/Contents/Resources
     # security find-identity -v -p codesigning
@@ -58,8 +57,8 @@ if [ "$(uname)" == "Darwin" ]; then
             then
                 codesign -s "$DEV_ID" DBApp.app
             fi
-            # DBApp.app/Contents/MacOS/DBApp # good for testing to look at outputs
-            open DBApp.app
+            DBApp.app/Contents/MacOS/DBApp # good for testing to look at outputs
+            #open DBApp.app
         fi
     fi
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then

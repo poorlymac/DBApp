@@ -72,12 +72,9 @@
 <script language="JavaScript">
     /* track pressed keys globally so we can listen for Alt key (ModeChange on Linux) etc. */
     var altKey = false;
-    /*
-    window.onkeyup   = function(eu) { if (eu.key == "Alt" || eu.key == "ModeChange") altKey = false; document.getElementById('sql').value = "yes"; }
-    window.onkeydown = function(ed) { if (ed.key == "Alt" || ed.key == "ModeChange") altKey =  true; document.getElementById('sql').value = "no";}
-    */
-    window.addEventListener('keyup',   function(eu) { if (eu.key == "Alt" || eu.key == "ModeChange") altKey = false; document.getElementById('sql').value = "yes"; });
-    window.addEventListener('keydown', function(ed) { if (ed.key == "Alt" || ed.key == "ModeChange") altKey =  true; document.getElementById('sql').value = "no"; });
+    var decorator;
+    window.addEventListener('keyup',   function(eu) { if (eu.key == "Alt" || eu.key == "ModeChange") altKey = false; });
+    window.addEventListener('keydown', function(ed) { if (ed.key == "Alt" || ed.key == "ModeChange") altKey =  true; });
     /* These values have been set in the c++ app, set them on screen load */
     document.getElementById('server').value = server;
     document.getElementById('login').value = login;
